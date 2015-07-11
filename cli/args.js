@@ -44,6 +44,11 @@ module.exports = require('yargs')
         type: 'string',
         'default': 'mysql'
     })
+    .option('strip-suffix', {
+        alias: 's',
+        describe: 'Remove a suffix from table names when generating',
+        type: 'array'
+    })
     .option('interactive', {
         alias: 'i',
         describe: 'Interactive mode (prompt for confirmations)',

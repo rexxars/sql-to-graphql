@@ -11,6 +11,7 @@ var mapValues = require('lodash/object/mapValues');
 var steps = {
     getTables: require('./steps/table-list'),
     tableToObject: require('./steps/table-to-object'),
+    findReferences: require('./steps/find-references'),
 
     collect: {
         tableStructure: require('./steps/table-structure'),
@@ -49,6 +50,7 @@ function onTablesSelected(tables) {
 
     // Collect the data in parallel
     async.parallel(steps.collect, onTableDataCollected);
+    log(tables);
 }
 
 // When table data has been collected, build an object representation of them
@@ -67,6 +69,8 @@ function onTableDataCollected(err, data) {
     }
 
     data.models = models;
+
+    data = steps.findReferences(data);
 
     log(data.models);
     adapter.close();

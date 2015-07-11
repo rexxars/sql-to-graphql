@@ -22,10 +22,12 @@
   ],
   "preferGlobal": true,
   "author": "Espen Hovlandsdal <espen@vaffel.ninja>",
-  "contributors": [{
-    "name": "Kristoffer Brabrand",
-    "email": "kristoffer@vaffel.ninja"
-  }],
+  "contributors": [
+    {
+      "name": "Kristoffer Brabrand",
+      "email": "kristoffer@vaffel.ninja"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/vaffel/sql-to-graphql/issues"
@@ -37,6 +39,7 @@
     "inquirer": "^0.8.5",
     "lodash": "^3.10.0",
     "mysql": "^2.7.0",
+    "pluralize": "^1.1.2",
     "yargs": "^3.15.0"
   },
   "devDependencies": {
