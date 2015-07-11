@@ -9,6 +9,7 @@ var generics = ['type'], undef;
 function columnToObject(col) {
     return merge({
         name: getColName(col),
+        originalName: col.columnName,
         description: col.columnComment || undef,
         isNullable: col.isNullable === 'YES',
         isPrimaryKey: col.columnKey === 'PRI'
