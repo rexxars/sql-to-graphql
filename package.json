@@ -1,0 +1,56 @@
+{
+  "name": "sql-to-graphql",
+  "version": "1.0.0",
+  "description": "Generate GraphQL type schemas based on SQL table structures",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo tests coming soon"
+  },
+  "bin": {
+    "sql2graphql": "./cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/vaffel/sql-to-graphql.git"
+  },
+  "keywords": [
+    "generator",
+    "graphql",
+    "schemas",
+    "sql",
+    "type"
+  ],
+  "preferGlobal": true,
+  "author": "Espen Hovlandsdal <espen@vaffel.ninja>",
+  "contributors": [{
+    "name": "Kristoffer Brabrand",
+    "email": "kristoffer@vaffel.ninja"
+  }],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vaffel/sql-to-graphql/issues"
+  },
+  "homepage": "https://github.com/vaffel/sql-to-graphql#readme",
+  "dependencies": {
+    "async": "^1.3.0",
+    "graphql": "^0.1.3",
+    "inquirer": "^0.8.5",
+    "lodash": "^3.10.0",
+    "mysql": "^2.7.0",
+    "yargs": "^3.15.0"
+  },
+  "devDependencies": {
+    "eslint": "^0.24.0",
+    "eslint-config-vaffel": "^1.0.0",
+    "pre-commit": "*"
+  },
+  "eslintConfig": {
+    "extends": "vaffel",
+    "rules": {
+      "new-cap": 0,
+      "no-console": 0,
+      "no-process-exit": 0,
+      "no-underscore-dangle": 0
+    }
+  }
+}
