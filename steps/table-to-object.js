@@ -2,7 +2,7 @@
 
 var camelCase = require('lodash/string/camelCase');
 var capitalize = require('lodash/string/capitalize');
-var columnToObject = require('../util/column-to-object');
+var columnToObject = require('./column-to-object');
 
 function tableToObject(table) {
     var model = {
