@@ -4,14 +4,14 @@ var merge = require('lodash/object/merge');
 var indexBy = require('lodash/collection/indexBy');
 var camelCase = require('lodash/string/camelCase');
 var capitalize = require('lodash/string/capitalize');
-var isNullable = require('../util/is-nullable');
 var generics = ['type'], undef;
 
 function columnToObject(col) {
     return merge({
         name: getColName(col),
         description: col.columnComment || undef,
-        nullable: isNullable(col)
+        isNullable: col.isNullable === 'YES',
+        isPrimaryKey: col.columnKey === 'PRI'
     }, getType(col));
 }
 

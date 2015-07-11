@@ -50,7 +50,6 @@ function onTablesSelected(tables) {
 
     // Collect the data in parallel
     async.parallel(steps.collect, onTableDataCollected);
-    log(tables);
 }
 
 // When table data has been collected, build an object representation of them
@@ -68,9 +67,7 @@ function onTableDataCollected(err, data) {
         models[model.name] = model;
     }
 
-    data.models = models;
-
-    data = steps.findReferences(data);
+    data.models = steps.findReferences(models);
 
     log(data.models);
     adapter.close();
