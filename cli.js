@@ -69,7 +69,7 @@ function onTableDataCollected(err, data) {
 
     data.models = steps.findReferences(models);
 
-    log(data.models);
+    log.depth(data.models, 2);
     adapter.close();
 }
 

@@ -9,4 +9,8 @@ function log() {
     });
 }
 
+log.depth = function(item, depth) {
+    console.log(util.inspect(item, { depth: depth, colors: true }));
+};
+
 module.exports = log;
