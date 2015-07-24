@@ -1,6 +1,5 @@
 'use strict';
 
-var log = require('../util/log');
 var filter = require('lodash/collection/filter');
 var snakeCase = require('lodash/string/snakeCase');
 var capitalize = require('lodash/string/capitalize');
@@ -19,7 +18,9 @@ function findReferencesForModel(model, models) {
 
     // Filter the columns that have a corresponding model
     return refs.reduce(function(references, col) {
-        var parts = snakeCase(col.name.substr(0, col.name.length - 2)).split('_');
+        var colName = col.name.substr(0, col.name.length - 2).replace(/^parent/, '');
+        var parts = snakeCase(colName).split('_');
+
         do {
             var name = parts.map(capitalize).join('');
 
