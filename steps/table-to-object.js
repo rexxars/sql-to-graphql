@@ -29,6 +29,8 @@ function reduceColumn(fields, column) {
 }
 
 function normalizeTableName(name, strip) {
+    strip = strip || [];
+
     strip.forEach(function(suffix) {
         name = name.replace(new RegExp(escapeRegExp(suffix) + '$'), '');
     });
