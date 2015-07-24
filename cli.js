@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 'use strict';
 
-var log = require('./util/log');
 var opts = require('./cli/args');
 var async = require('async');
 var prompts = require('./cli/prompts');
@@ -12,6 +11,8 @@ var steps = {
     getTables: require('./steps/table-list'),
     tableToObject: require('./steps/table-to-object'),
     findReferences: require('./steps/find-references'),
+    generateTypes: require('./steps/generate-types'),
+    outputData: require('./steps/output-data'),
 
     collect: {
         tableStructure: require('./steps/table-structure'),
@@ -55,6 +56,7 @@ function onTablesSelected(tables) {
 // When table data has been collected, build an object representation of them
 function onTableDataCollected(err, data) {
     bailOnError(err);
+    adapter.close();
 
     var tableName, models = {}, model;
     for (tableName in data.tableStructure) {
@@ -68,9 +70,9 @@ function onTableDataCollected(err, data) {
     }
 
     data.models = steps.findReferences(models);
+    data.types = steps.generateTypes(data, opts);
 
-    log.depth(data.models, 2);
-    adapter.close();
+    steps.outputData(data, opts);
 }
 
 function bail(err) {

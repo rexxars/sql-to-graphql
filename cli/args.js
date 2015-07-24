@@ -58,5 +58,40 @@ module.exports = require('yargs')
         type: 'boolean',
         'default': false
     })
+    .option('colors', {
+        alias: 'c',
+        describe: 'Colorize the code output',
+        type: 'boolean',
+        'default': false
+    })
+    .option('output-dir', {
+        describe: 'Print output into separate files within the given directory',
+        type: 'string'
+    })
+    .option('es6', {
+        describe: 'Output in ES6 format (const, import et all)',
+        type: 'boolean',
+        'default': false
+    })
+    .option('use-tabs', {
+        describe: 'Use tabs for indentation',
+        type: 'boolean',
+        'default': false
+    })
+    .option('tab-width', {
+        describe: 'Width of tabs',
+        type: 'number',
+        'default': 4
+    })
+    .option('quote', {
+        describe: 'Quote style (single/double)',
+        type: 'string',
+        'default': 'single'
+    })
+    .option('default-description', {
+        describe: 'The description to use for columns without a comment',
+        type: 'string',
+        'default': '@TODO DESCRIBE ME'
+    })
     .help('help')
     .argv;
