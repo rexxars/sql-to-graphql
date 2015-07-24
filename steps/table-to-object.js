@@ -7,8 +7,8 @@ var columnToObject = require('./column-to-object');
 
 function tableToObject(table, opts) {
     var normalized = normalizeTableName(table.name, {
-        suffix: opts['strip-suffix'],
-        prefix: opts['strip-prefix']
+        suffix: opts.stripSuffix,
+        prefix: opts.stripPrefix
     });
 
     var model = {
