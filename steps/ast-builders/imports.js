@@ -4,18 +4,29 @@ var b = require('ast-types').builders;
 var path = require('path');
 
 function generateImports(imports, opts) {
-    var graphql = ['GraphQLObjectType'].concat(imports.filter(isGraphQL));
     var others = imports.filter(not(isGraphQL));
+    var graphql = [
+        'GraphQLObjectType',
+        'GraphQLSchema'
+    ].concat(imports.filter(isGraphQL));
 
-    return (
-        opts.es6 ?
+    return opts.es6 ?
         es6Import(graphql, others, opts) :
-        cjsImport(graphql, others, opts)
-    );
+        cjsImport(graphql, others, opts);
 }
 
 function cjsImport(graphql, others, opts) {
-    var declarations = [];
+    var declarations = [
+        b.variableDeclaration('var',
+            [b.variableDeclarator(
+                b.identifier('getEntityResolver'),
+                b.callExpression(
+                    b.identifier('require'),
+                    [b.literal('./util/entity-resolver')]
+                )
+            )]
+        )
+    ];
 
     if (graphql.length) {
         declarations.push(b.variableDeclaration('var',

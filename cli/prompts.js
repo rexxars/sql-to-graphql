@@ -6,7 +6,7 @@ module.exports = {
     tableSelection: function(tables, cb) {
         prompt({
             type: 'checkbox',
-            message: 'Select tables for include',
+            message: 'Select tables to include',
             name: 'tables',
             choices: [
                 new inquirer.Separator('Available tables:')

@@ -6,14 +6,20 @@ var camelCase = require('lodash/string/camelCase');
 var capitalize = require('lodash/string/capitalize');
 var generics = ['type'], undef;
 
-function columnToObject(col) {
-    return merge({
-        name: getColName(col),
+function columnToObject(col, opts) {
+    var column = merge({
+        name: getColName(col, opts),
         originalName: col.columnName,
         description: col.columnComment || undef,
         isNullable: col.isNullable === 'YES',
         isPrimaryKey: col.columnKey === 'PRI'
     }, getType(col));
+
+    if (column.isPrimaryKey && !opts.unaliasedPrimaryKeys) {
+        column.name = 'id';
+    }
+
+    return column;
 }
 
 function getColName(col) {

@@ -3,6 +3,7 @@
 var pluralize = require('pluralize');
 var camelCase = require('lodash/string/camelCase');
 var capitalize = require('lodash/string/capitalize');
+var indexBy = require('lodash/collection/indexBy');
 var columnToObject = require('./column-to-object');
 
 function tableToObject(table, opts) {
@@ -11,12 +12,23 @@ function tableToObject(table, opts) {
         prefix: opts.stripPrefix
     });
 
+    var fields = table.columns.map(function(column) {
+        return columnToObject(column, opts);
+    });
+
     var model = {
         name: getTypeName(normalized),
         description: table.comment,
         table: table.name,
         normalizedTable: normalized,
-        fields: table.columns.reduce(reduceColumn, {})
+        fields: indexBy(fields, 'name'),
+        aliasedFields: fields.reduce(function(aliases, field) {
+            if (field.name !== field.originalName) {
+                aliases[field.name] = field.originalName;
+            }
+
+            return aliases;
+        }, {})
     };
 
     return model;
@@ -24,12 +36,6 @@ function tableToObject(table, opts) {
 
 function getTypeName(item) {
     return pluralize(capitalize(camelCase(item)), 1);
-}
-
-function reduceColumn(fields, column) {
-    var col = columnToObject(column);
-    fields[col.name] = col;
-    return fields;
 }
 
 function normalizeTableName(name, strip) {
