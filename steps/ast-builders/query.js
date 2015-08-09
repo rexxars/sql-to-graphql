@@ -2,6 +2,7 @@
 
 var b = require('ast-types').builders;
 var buildResolver = require('./resolver');
+var getPrimaryKey = require('../../util/get-primary-key');
 var typeMap = {
     'string': 'GraphQLString',
     'integer': 'GraphQLInt',
@@ -33,12 +34,4 @@ module.exports = function buildQuery(type, data) {
     ]);
 };
 
-function getPrimaryKey(model) {
-    for (var key in model.fields) {
-        if (model.fields[key].isPrimaryKey) {
-            return model.fields[key];
-        }
-    }
 
-    return false;
-}

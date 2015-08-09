@@ -31,15 +31,14 @@ function generateTypes(data, opts) {
     }
 
     function generateType(name, model) {
-        var fields = [], fieldNames = Object.keys(model.fields);
+        var fields = [];
         for (var fieldName in model.fields) {
             fields.push(generateField(model.fields[fieldName]));
 
             if (model.references[fieldName]) {
                 fields.push(generateReferenceField(
-                    fieldName,
-                    model.references[fieldName],
-                    fieldNames
+                    model.fields[fieldName],
+                    model.references[fieldName]
                 ));
             }
         }
@@ -107,28 +106,21 @@ function generateTypes(data, opts) {
         );
     }
 
-    function generateReferenceField(refName, refersTo, otherFields) {
-        var fieldName = refName.replace(/Id$/, '');
-
-        // If we collide with a different field name, add a "Ref"-suffix
-        if (otherFields.indexOf(fieldName) !== -1) {
-            fieldName += 'Ref';
-        }
-
+    function generateReferenceField(refField, refersTo) {
         var description = opts.defaultDescription;
-        if (fieldName.indexOf('parent') === 0) {
-            description += ' (parent ' + refersTo.name.toLowerCase() + ')';
+        if (refersTo.field.indexOf('parent') === 0) {
+            description += ' (parent ' + refersTo.model.name.toLowerCase() + ')';
         } else {
             description += ' (reference)';
         }
 
-        var refTypeName = refersTo.name + 'Type';
+        var refTypeName = refersTo.model.name + 'Type';
         addUsedType(refTypeName);
 
         return generateField({
-            name: fieldName,
+            name: refersTo.field,
             description: description,
-            resolve: buildResolver(refersTo, data)
+            resolve: buildResolver(refersTo.model, data, refField.originalName)
         }, b.identifier(refTypeName));
     }
 

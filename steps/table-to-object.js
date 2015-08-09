@@ -24,7 +24,7 @@ function tableToObject(table, opts) {
         fields: indexBy(fields, 'name'),
         aliasedFields: fields.reduce(function(aliases, field) {
             if (field.name !== field.originalName) {
-                aliases[field.name] = field.originalName;
+                aliases[field.originalName] = field.name;
             }
 
             return aliases;
