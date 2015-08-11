@@ -122,7 +122,7 @@ function generateTypes(data, opts) {
         return generateField({
             name: refersTo.field,
             description: description,
-            resolve: buildResolver(refersTo.model, data, refField.originalName)
+            resolve: opts.outputDir && buildResolver(refersTo.model, data, refField.originalName)
         }, b.identifier(refTypeName));
     }
 
