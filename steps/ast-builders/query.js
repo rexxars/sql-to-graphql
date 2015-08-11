@@ -9,7 +9,7 @@ var typeMap = {
     'float': 'GraphQLFloat'
 };
 
-module.exports = function buildQuery(type, data) {
+module.exports = function buildQuery(type, data, opts) {
     var model = data.models[type.name];
     var primaryKey = getPrimaryKey(model) || {};
     var keyName = primaryKey.name;
@@ -17,11 +17,6 @@ module.exports = function buildQuery(type, data) {
 
     return b.objectExpression([
         b.property('init', b.identifier('type'), b.identifier(type.varName)),
-        b.property(
-            'init',
-            b.identifier('resolve'),
-            buildResolver(type, data)
-        ),
         b.property('init', b.identifier('args'), b.objectExpression(keyName ? [
             b.property('init', b.identifier('id'), b.objectExpression([
                 b.property('init', b.identifier('name'), b.literal(keyName)),
@@ -31,7 +26,11 @@ module.exports = function buildQuery(type, data) {
                 ))
             ]))
         ] : []))
-    ]);
+    ].concat(opts.outputDir ? [b.property(
+        'init',
+        b.identifier('resolve'),
+        buildResolver(type, data)
+    )] : []));
 };
 
 

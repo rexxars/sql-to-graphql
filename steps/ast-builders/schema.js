@@ -6,7 +6,7 @@ var b = require('ast-types').builders;
 var buildVar = require('./variable');
 var buildQuery = require('./query');
 
-module.exports = function(data) {
+module.exports = function(data, opts) {
     return buildVar('schema',
         b.newExpression(
             b.identifier('GraphQLSchema'),
@@ -23,7 +23,7 @@ module.exports = function(data) {
                                     return b.property(
                                         'init',
                                         b.identifier(camelCase(type.name)),
-                                        buildQuery(type, data)
+                                        buildQuery(type, data, opts)
                                     );
                                 })
                             ))

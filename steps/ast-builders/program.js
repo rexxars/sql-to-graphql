@@ -21,7 +21,7 @@ module.exports = function buildProgram(data, opts) {
         .concat(buildImports(imports, options))
         .concat(typesAst)
         .concat([buildSchema(data, options)])
-        .concat([buildSchemaExport(data, options)]);
+        .concat([buildSchemaExport(options)]);
 
     return b.program(program);
 };
