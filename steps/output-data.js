@@ -11,12 +11,14 @@ var buildProgram = require('./ast-builders/program');
 var buildSchemaModule = require('./ast-builders/schema-module');
 var copyTemplates = require('./copy-templates');
 
-function outputData(data, opts) {
+function outputData(data, opts, callback) {
     if (!opts.outputDir) {
-        return printAst(
+        printAst(
             buildProgram(data, opts),
             opts
         );
+
+        return callback();
     }
 
     // Output to a directory, in other words: split stuff up
@@ -53,6 +55,8 @@ function outputData(data, opts) {
         // Write the all-important schema!
         code = recast.prettyPrint(buildSchemaModule(data, opts), opts).code;
         fs.writeFileSync(path.join(outputDir, 'schema.js'), code);
+
+        callback();
     });
 }
 

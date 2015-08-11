@@ -73,10 +73,19 @@ function cjsImport(graphql, others, opts) {
 }
 
 function es6Import(graphql, others, opts) {
-    var declarations = [];
+    var resolverPath = (opts.outputDir && !opts.isFromSchema ? '.' : '') + './util/entity-resolver';
+    var declarations = [
+        b.importDeclaration(
+            [importSpecifier('getEntityResolver', true)],
+            b.literal(resolverPath)
+        )
+    ];
+
     if (graphql.length) {
         declarations.push(b.importDeclaration(
-            graphql.map(importSpecifier),
+            graphql.map(function(item) {
+                return importSpecifier(item);
+            }),
             b.literal('graphql')
         ));
     }
@@ -93,9 +102,9 @@ function es6Import(graphql, others, opts) {
 }
 
 // Couldn't figure out b.importSpecifier
-function importSpecifier(name) {
+function importSpecifier(name, def) {
     return {
-        type: 'ImportSpecifier',
+        type: def ? 'ImportDefaultSpecifier' : 'ImportSpecifier',
         id: {
             type: 'Identifier',
             name: name
@@ -106,7 +115,7 @@ function importSpecifier(name) {
 
 function importDeclaration(item, opts) {
     return b.importDeclaration(
-        [importSpecifier(item)],
+        [importSpecifier(item, true)],
         b.literal(importPath(item, opts))
     );
 }

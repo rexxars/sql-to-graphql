@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
+var path = require('path');
 var opts = require('./cli/args');
 var async = require('async');
 var prompts = require('./cli/prompts');
@@ -72,7 +73,22 @@ function onTableDataCollected(err, data) {
     data.models = steps.findReferences(models);
     data.types = steps.generateTypes(data, opts);
 
-    steps.outputData(data, opts);
+    steps.outputData(data, opts, onDataOutput);
+}
+
+// When the data has been written to stdout/files
+function onDataOutput() {
+    if (!opts.outputDir) {
+        return;
+    }
+
+    var dir = path.resolve(opts.outputDir);
+    console.log('Demo app generated in ' + dir + '. To run:');
+    console.log('cd ' + dir);
+    console.log('npm install');
+    console.log('npm start');
+    console.log();
+    console.log('Then point your browser at http://localhost:3000');
 }
 
 function bail(err) {

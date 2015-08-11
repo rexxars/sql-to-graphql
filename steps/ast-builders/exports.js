@@ -2,7 +2,11 @@
 
 var b = require('ast-types').builders;
 
-module.exports = function buildExports(val, es6) {
+module.exports = function buildExports(val, opts) {
+    if (opts.es6) {
+        return b.exportDeclaration(true, val);
+    }
+
     return b.expressionStatement(
         b.assignmentExpression(
             '=',
