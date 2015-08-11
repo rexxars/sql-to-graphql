@@ -1,29 +1,59 @@
 'use strict';
 
-var b = require('ast-types').builders;
-var uniq = require('lodash/array/uniq');
-var merge = require('lodash/object/merge');
-var sortBy = require('lodash/collection/sortBy');
-var pluck = require('lodash/collection/pluck');
-var flatten = require('lodash/array/flatten');
+var fs = require('fs');
+var path = require('path');
+var recast = require('recast');
+var mkdirp = require('mkdirp');
 var printAst = require('../util/print-ast');
-var generateImports = require('../util/generate-imports');
+var buildType = require('./ast-builders/type');
+var buildConfig = require('./ast-builders/config');
+var buildProgram = require('./ast-builders/program');
+var buildSchemaModule = require('./ast-builders/schema-module');
+var copyTemplates = require('./copy-templates');
 
 function outputData(data, opts) {
-    var options = merge({ skipLocalImports: !opts.outputDir }, opts);
-    var imports = uniq(flatten(pluck(data.types, 'imports')));
-    var typesAst = pluck(sortBy(data.types, 'imports.length'), 'ast');
-    var importsAst = generateImports(imports, options);
-
     if (!opts.outputDir) {
         return printAst(
-            b.program(importsAst.concat(typesAst)),
-            options
+            buildProgram(data, opts),
+            opts
         );
     }
 
     // Output to a directory, in other words: split stuff up
-    // @todo
+    var outputDir = path.resolve(opts.outputDir);
+    var typesDir = path.join(outputDir, 'types');
+    var configDir = path.join(outputDir, 'config');
+    mkdirp(typesDir, function(err) {
+        if (err) {
+            throw err;
+        }
+
+        // Write the configuration file
+        mkdirp(configDir, function(configErr) {
+            if (configErr) {
+                throw configErr;
+            }
+
+            var conf = recast.prettyPrint(buildConfig(opts), opts).code;
+            fs.writeFileSync(path.join(configDir, 'config.js'), conf);
+        });
+
+        // Copy templates ("static" ones, should probably be named something else)
+        copyTemplates(opts.es6 ? 'es6' : 'cjs', outputDir);
+
+        // Write types
+        var type, ast, code;
+        for (type in data.types) {
+            ast = buildType(data.types[type], opts);
+            code = recast.prettyPrint(ast, opts).code;
+
+            fs.writeFileSync(path.join(typesDir, data.types[type].varName + '.js'), code);
+        }
+
+        // Write the all-important schema!
+        code = recast.prettyPrint(buildSchemaModule(data, opts), opts).code;
+        fs.writeFileSync(path.join(outputDir, 'schema.js'), code);
+    });
 }
 
 module.exports = outputData;

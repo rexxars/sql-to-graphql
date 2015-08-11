@@ -3,6 +3,8 @@
 var capitalize = require('lodash/string/capitalize');
 var snakeCase = require('lodash/string/snakeCase');
 var b = require('ast-types').builders;
+var buildVar = require('./ast-builders/variable');
+var buildResolver = require('./ast-builders/resolver');
 
 var typeMap = {
     'string': 'GraphQLString',
@@ -15,7 +17,11 @@ function generateTypes(data, opts) {
     for (var typeName in data.models) {
         typesUsed = [];
         types[typeName] = generateType(typeName, data.models[typeName]);
-        types[typeName].imports = typesUsed;
+        types[typeName].varName = typeName + 'Type';
+        types[typeName].name = typeName;
+        types[typeName].imports = typesUsed.filter(function(type) {
+            return type !== types[typeName].varName;
+        });
     }
 
     return types;
@@ -27,15 +33,14 @@ function generateTypes(data, opts) {
     }
 
     function generateType(name, model) {
-        var fields = [], fieldNames = Object.keys(model.fields);
+        var fields = [];
         for (var fieldName in model.fields) {
             fields.push(generateField(model.fields[fieldName]));
 
             if (model.references[fieldName]) {
                 fields.push(generateReferenceField(
-                    fieldName,
-                    model.references[fieldName],
-                    fieldNames
+                    model.fields[fieldName],
+                    model.references[fieldName]
                 ));
             }
         }
@@ -43,7 +48,11 @@ function generateTypes(data, opts) {
         var typeDeclaration = b.objectExpression([
             b.property('init', b.identifier('name'), b.literal(name)),
             generateDescription(model.description),
-            b.property('init', b.identifier('fields'), b.objectExpression(fields))
+            b.property(
+                'init',
+                b.identifier('fields'),
+                buildFieldWrapperFunc(name, b.objectExpression(fields))
+            )
         ]);
 
         return {
@@ -53,9 +62,25 @@ function generateTypes(data, opts) {
                     b.identifier('GraphQLObjectType'),
                     [typeDeclaration]
                 ),
-                opts
+                opts.es6
             )
         };
+    }
+
+    function buildFieldWrapperFunc(name, fields) {
+        if (opts.es6) {
+            return b.arrowFunctionExpression([], fields);
+        }
+
+        return b.functionExpression(
+            b.identifier('get' + name + 'Fields'),
+            [],
+            b.blockStatement([
+                b.returnStatement(
+                    fields
+                )
+            ])
+        );
     }
 
     function generateDescription(description) {
@@ -67,37 +92,37 @@ function generateTypes(data, opts) {
     }
 
     function generateField(field, type) {
+        var props = [
+            b.property('init', b.identifier('type'), type || getType(field)),
+            generateDescription(field.description)
+        ];
+
+        if (field.resolve) {
+            props.push(b.property('init', b.identifier('resolve'), field.resolve));
+        }
+
         return b.property(
             'init',
             b.identifier(field.name),
-            b.objectExpression([
-                b.property('init', b.identifier('type'), type || getType(field)),
-                generateDescription(field.description)
-            ])
+            b.objectExpression(props)
         );
     }
 
-    function generateReferenceField(refName, refersTo, otherFields) {
-        var fieldName = refName.replace(/Id$/, '');
-
-        // If we collide with a different field name, add a "Ref"-suffix
-        if (otherFields.indexOf(fieldName) !== -1) {
-            fieldName += 'Ref';
-        }
-
+    function generateReferenceField(refField, refersTo) {
         var description = opts.defaultDescription;
-        if (fieldName.indexOf('parent') === 0) {
-            description += ' (parent ' + refersTo.name + ')';
+        if (refersTo.field.indexOf('parent') === 0) {
+            description += ' (parent ' + refersTo.model.name.toLowerCase() + ')';
         } else {
             description += ' (reference)';
         }
 
-        var refTypeName = refersTo.name + 'Type';
+        var refTypeName = refersTo.model.name + 'Type';
         addUsedType(refTypeName);
 
         return generateField({
-            name: fieldName,
-            description: description
+            name: refersTo.field,
+            description: description,
+            resolve: buildResolver(refersTo.model, data, refField.originalName)
         }, b.identifier(refTypeName));
     }
 
@@ -144,16 +169,6 @@ function generateTypes(data, opts) {
             b.identifier('GraphQLEnumType'),
             [typeDeclaration]
         );
-    }
-
-    function buildVar(name, val) {
-        var varStyle = opts.es6 ? 'const' : 'var';
-        return b.variableDeclaration(varStyle, [
-            b.variableDeclarator(
-                b.identifier(name),
-                val
-            )
-        ]);
     }
 }
 

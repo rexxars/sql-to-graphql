@@ -1,21 +1,32 @@
 'use strict';
 
 var b = require('ast-types').builders;
-var path = require('path');
 
 function generateImports(imports, opts) {
-    var graphql = ['GraphQLObjectType'].concat(imports.filter(isGraphQL));
     var others = imports.filter(not(isGraphQL));
+    var graphql = [
+        'GraphQLObjectType',
+        'GraphQLSchema'
+    ].concat(imports.filter(isGraphQL));
 
-    return (
-        opts.es6 ?
+    return opts.es6 ?
         es6Import(graphql, others, opts) :
-        cjsImport(graphql, others, opts)
-    );
+        cjsImport(graphql, others, opts);
 }
 
 function cjsImport(graphql, others, opts) {
-    var declarations = [];
+    var resolverPath = (opts.outputDir && !opts.isFromSchema ? '.' : '') + './util/entity-resolver';
+    var declarations = [
+        b.variableDeclaration('var',
+            [b.variableDeclarator(
+                b.identifier('getEntityResolver'),
+                b.callExpression(
+                    b.identifier('require'),
+                    [b.literal(resolverPath)]
+                )
+            )]
+        )
+    ];
 
     if (graphql.length) {
         declarations.push(b.variableDeclaration('var',
@@ -27,20 +38,6 @@ function cjsImport(graphql, others, opts) {
                 )
             )]
         ));
-
-        graphql.forEach(function(item) {
-            declarations.push(
-                b.variableDeclaration('var',
-                    [b.variableDeclarator(
-                        b.identifier(item),
-                        b.memberExpression(
-                            b.identifier('GraphQL'),
-                            b.identifier(item),
-                            false
-                        )
-                    )]
-                ));
-        });
     }
 
     if (others.length && !opts.skipLocalImports) {
@@ -57,6 +54,20 @@ function cjsImport(graphql, others, opts) {
                 ));
         });
     }
+
+    graphql.forEach(function(item) {
+        declarations.push(
+            b.variableDeclaration('var',
+                [b.variableDeclarator(
+                    b.identifier(item),
+                    b.memberExpression(
+                        b.identifier('GraphQL'),
+                        b.identifier(item),
+                        false
+                    )
+                )]
+            ));
+    });
 
     return declarations;
 }
@@ -101,7 +112,8 @@ function importDeclaration(item, opts) {
 }
 
 function importPath(item, opts) {
-    return path.join(opts.outputDir, 'types', item);
+    var path = opts.isFromSchema ? 'types/' : '';
+    return './' + path + item;
 }
 
 function isGraphQL(name) {

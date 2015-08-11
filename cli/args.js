@@ -93,5 +93,10 @@ module.exports = require('yargs')
         type: 'string',
         'default': '@TODO DESCRIBE ME'
     })
+    .option('unaliased-primary-keys', {
+        describe: 'Disable aliasing of primary key fields to "id" for each type',
+        type: 'boolean',
+        'default': false
+    })
     .help('help')
     .argv;

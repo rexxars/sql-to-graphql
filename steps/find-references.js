@@ -15,18 +15,30 @@ function findReferences(models) {
 function findReferencesForModel(model, models) {
     // Find columns that end with "Id"
     var refs = filter(model.fields, isIdColumn);
+    var fields = Object.keys(model.fields);
 
     // Filter the columns that have a corresponding model
     return refs.reduce(function(references, col) {
         var colName = col.name.substr(0, col.name.length - 2).replace(/^parent/, '');
-        var parts = snakeCase(colName).split('_');
+        var parts = snakeCase(colName).split('_'), fieldName;
 
         do {
             var name = parts.map(capitalize).join('');
 
             // Do we have a match for this?
             if (models[name]) {
-                references[col.name] = models[name];
+                fieldName = col.name.replace(/Id$/, '');
+
+                // If we collide with a different field name, add a "Ref"-suffix
+                if (fields.indexOf(fieldName) !== -1) {
+                    fieldName += 'Ref';
+                }
+
+                references[col.name] = {
+                    model: models[name],
+                    field: fieldName,
+                    refField: col.name
+                };
                 return references;
             }
 
