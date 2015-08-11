@@ -1,7 +1,6 @@
 'use strict';
 
 var b = require('ast-types').builders;
-var path = require('path');
 
 function generateImports(imports, opts) {
     var others = imports.filter(not(isGraphQL));
@@ -16,13 +15,14 @@ function generateImports(imports, opts) {
 }
 
 function cjsImport(graphql, others, opts) {
+    var resolverPath = (opts.outputDir && !opts.isFromSchema ? '.' : '') + './util/entity-resolver';
     var declarations = [
         b.variableDeclaration('var',
             [b.variableDeclarator(
                 b.identifier('getEntityResolver'),
                 b.callExpression(
                     b.identifier('require'),
-                    [b.literal('./util/entity-resolver')]
+                    [b.literal(resolverPath)]
                 )
             )]
         )
@@ -38,20 +38,6 @@ function cjsImport(graphql, others, opts) {
                 )
             )]
         ));
-
-        graphql.forEach(function(item) {
-            declarations.push(
-                b.variableDeclaration('var',
-                    [b.variableDeclarator(
-                        b.identifier(item),
-                        b.memberExpression(
-                            b.identifier('GraphQL'),
-                            b.identifier(item),
-                            false
-                        )
-                    )]
-                ));
-        });
     }
 
     if (others.length && !opts.skipLocalImports) {
@@ -68,6 +54,20 @@ function cjsImport(graphql, others, opts) {
                 ));
         });
     }
+
+    graphql.forEach(function(item) {
+        declarations.push(
+            b.variableDeclaration('var',
+                [b.variableDeclarator(
+                    b.identifier(item),
+                    b.memberExpression(
+                        b.identifier('GraphQL'),
+                        b.identifier(item),
+                        false
+                    )
+                )]
+            ));
+    });
 
     return declarations;
 }
@@ -112,7 +112,8 @@ function importDeclaration(item, opts) {
 }
 
 function importPath(item, opts) {
-    return path.join(opts.outputDir, 'types', item);
+    var path = opts.isFromSchema ? 'types/' : '';
+    return './' + path + item;
 }
 
 function isGraphQL(name) {

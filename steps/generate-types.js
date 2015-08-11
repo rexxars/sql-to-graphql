@@ -17,9 +17,11 @@ function generateTypes(data, opts) {
     for (var typeName in data.models) {
         typesUsed = [];
         types[typeName] = generateType(typeName, data.models[typeName]);
-        types[typeName].imports = typesUsed;
         types[typeName].varName = typeName + 'Type';
         types[typeName].name = typeName;
+        types[typeName].imports = typesUsed.filter(function(type) {
+            return type !== types[typeName].varName;
+        });
     }
 
     return types;
