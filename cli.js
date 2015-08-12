@@ -21,6 +21,22 @@ var steps = {
     }
 };
 
+// Command vs requirements
+opts.command = opts._;
+
+var commands = ['app', 'print', 'definition'];
+if (!opts.command || !opts.command.length) {
+    return bail(new Error('Please specify command to run - `sql2graphql [' + commands.join(' | ') + ']`'));
+}
+
+if (commands.indexOf(opts.command) === -1) {
+    return bail(new Error('Invalid command. Valid commands: ' + commands.join(', ')));
+}
+
+if (opts.command === 'app' && !opts.outputDir) {
+    return bail(new Error('You need to provide an output directory (--output-dir=<path>) to generate an application'));
+}
+
 // Do we support the given backend?
 var backend = backends(opts.backend);
 if (!backend) {
