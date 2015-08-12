@@ -22,7 +22,7 @@ var steps = {
 };
 
 // Command vs requirements
-opts.command = opts._;
+opts.command = (opts._ || [])[0];
 
 var commands = ['app', 'print', 'definition'];
 if (!opts.command || !opts.command.length) {
@@ -44,20 +44,26 @@ if (!backend) {
 }
 
 // Instantiate the adapter for the given backend
-var adapter = backend(opts);
-
-// Collect a list of available tables
-steps.getTables(adapter, opts, function(err, tableNames) {
+var adapter = backend(opts, function(err) {
     bailOnError(err);
 
-    // If we're in interactive mode, prompt the user to select from the list of available tables
-    if (opts.interactive) {
-        return prompts.tableSelection(tableNames, onTablesSelected);
-    }
-
-    // Use the found tables (or a filtered set if --table is used)
-    return onTablesSelected(tableNames);
+    getTables();
 });
+
+function getTables() {
+    // Collect a list of available tables
+    steps.getTables(adapter, opts, function(err, tableNames) {
+        bailOnError(err);
+
+        // If we're in interactive mode, prompt the user to select from the list of available tables
+        if (opts.interactive) {
+            return prompts.tableSelection(tableNames, onTablesSelected);
+        }
+
+        // Use the found tables (or a filtered set if --table is used)
+        return onTablesSelected(tableNames);
+    });
+}
 
 // When tables have been selected, fetch data for those tables
 function onTablesSelected(tables) {

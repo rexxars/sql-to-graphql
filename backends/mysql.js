@@ -8,8 +8,10 @@ var mapValues = require('lodash/object/mapValues');
 var camelCase = require('lodash/string/camelCase');
 var queries = getQueries(), undef;
 
-module.exports = function mysqlBackend(opts) {
+module.exports = function mysqlBackend(opts, callback) {
     var connection = mysql.createConnection(opts);
+
+    process.nextTick(callback);
 
     return {
         getTables: function(tableNames, cb) {
