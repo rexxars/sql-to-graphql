@@ -10,7 +10,6 @@ Generate GraphQL schemas and/or server based on SQL table structure.
 
 - Generate a GraphQL-server based on Hapi
   - Set up a basic web-based playground that can query the server
-- Print a proposed GraphQL schema
 - Print the proposed GraphQL schema as code
 
 ## Disclaimer
