@@ -33,6 +33,7 @@ function getColName(col) {
 function getEnumValueMap(col) {
     var values = col.columnType
         .replace(/^enum\((.*)\)/, '$1')
+        .replace(/^\{|\}$/g, '')
         .split(',')
         .map(unquote)
         .map(function(val) {
@@ -66,23 +67,34 @@ function getType(col) {
         case 'varbinary':
 
         // Numbers that may exceed float precision, repesent as string
-        case 'decimal':
         case 'bigint':
+        case 'decimal':
+        case 'numeric':
         case 'geometry':
+        case 'bigserial':
+
+        // Network addresses represented as strings
+        case 'cidr':
+        case 'inet':
+        case 'macaddr':
 
         // Strings
         case 'set':
         case 'char':
         case 'text':
+        case 'uuid':
         case 'varchar':
         case 'tinytext':
         case 'longtext':
+        case 'character':
         case 'mediumtext':
             return { type: 'string' };
 
         // Integers
         case 'int':
         case 'year':
+        case 'serial':
+        case 'integer':
         case 'tinyint':
         case 'smallint':
         case 'mediumint':
@@ -90,17 +102,27 @@ function getType(col) {
             return { type: 'integer' };
 
         // Floats
+        case 'real':
         case 'float':
         case 'double':
+        case 'double precision':
             return { type: 'float' };
+
+        // Booleans
+        case 'boolean':
+            return { type: 'boolean' };
 
         // Enum special case
         case 'enum':
+
+        // As well as postgres enums
+        case 'USER-DEFINED':
             return {
                 type: 'enum',
                 values: getEnumValueMap(col)
             };
         default:
+            console.log(col);
             throw new Error('Type "' + col.dataType + '" not recognized');
     }
 }

@@ -7,9 +7,11 @@ var buildVar = require('./ast-builders/variable');
 var buildResolver = require('./ast-builders/resolver');
 
 var typeMap = {
+    'id': 'GraphQLID',
     'string': 'GraphQLString',
     'integer': 'GraphQLInt',
-    'float': 'GraphQLFloat'
+    'float': 'GraphQLFloat',
+    'boolean': 'GraphQLBoolean'
 };
 
 function generateTypes(data, opts) {

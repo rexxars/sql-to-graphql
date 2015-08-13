@@ -6,7 +6,7 @@ Generate GraphQL schemas and/or server based on SQL table structure.
 
 [https://facebook.github.io/graphql/](GraphQL) is pretty awesome, but getting started can be difficult - especially if you are unfamiliar with the concepts it introduces.
 
-`sql-to-graphql` is a command-line utility that can help you get started. You give it the credentials to an SQL database (only MySQL, currently) and it will inspect the tables it finds and do one of the following:
+`sql-to-graphql` is a command-line utility that can help you get started. You give it the credentials to an SQL database (MySQL, PostgreSQL currently) and it will inspect the tables it finds and do one of the following:
 
 - Generate a GraphQL-server based on Hapi
   - Set up a basic web-based playground that can query the server
@@ -30,7 +30,7 @@ This utility is intended to help people get started with GraphQL. It is **NOT** 
   
   - `--database`, `--db` - Database name *`(string [required])`*
   - `--host`, `-h` - Hostname of database server *`(string [default: "localhost"])`*
-  - `--port`, `-P` - Port number of database server *`(number [default: 3306])`*
+  - `--port`, `-P` - Port number of database server *`(number)`*
   - `--user`, `-u` - Username to use when connecting *`(string [default: "root"])`*
   - `--password`, `-p` - Password to use when connecting *`(string [default: ""])`*
   - `--table`, `-t` - Tables to generate type schemas for *`(array [default: "*"])`*
