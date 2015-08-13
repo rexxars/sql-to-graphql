@@ -46,6 +46,11 @@ module.exports = require('yargs')
         type: 'string',
         'default': 'mysql'
     })
+    .option('relay', {
+        alias: 'r',
+        describe: 'Generate Relay-style schema',
+        type: 'boolean'
+    })
     .option('strip-suffix', {
         describe: 'Remove a suffix from table names when generating',
         type: 'array'

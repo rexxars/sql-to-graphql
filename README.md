@@ -37,6 +37,7 @@ This utility is intended to help people get started with GraphQL. It is **NOT** 
   - `--password`, `-p` - Password to use when connecting *`(string [default: ""])`*
   - `--table`, `-t` - Tables to generate type schemas for *`(array [default: "*"])`*
   - `--backend`, `-b` - Type of database *`(string [default: "mysql"])`*
+  - `--relay`, `-r` - Generate Relay-style schema *`(boolean [default: false])`*
   - `--strip-suffix` - Remove a suffix from table names when generating types *`(array)`*
   - `--strip-prefix` - Remove a prefix from table names when generating types *`(array)`*
   - `--interactive`, `-i` - Interactive mode *`(boolean [default: false])`*
