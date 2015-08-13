@@ -4,7 +4,6 @@ module.exports = require('yargs')
     .usage('Usage: $0 <command> [options]')
     .command('app', 'Create a demo app based on Hapi that can be used to query the generated schema')
     .command('print', 'Print the generated schema to console')
-    .command('definition', 'Print a schema definition to console')
     .option('database', {
         alias: 'db',
         demand: true,

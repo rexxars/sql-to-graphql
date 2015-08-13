@@ -24,7 +24,6 @@ This utility is intended to help people get started with GraphQL. It is **NOT** 
 ### Commands:
   - `app` - Create a demo app based on Hapi that can be used to query the generated schema
   - `print` - Print the generated schema to console
-  - `definition` - Print a schema definition to console
 
 ### Options:
   
