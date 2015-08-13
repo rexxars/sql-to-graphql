@@ -16,6 +16,10 @@ Generate GraphQL schemas and/or server based on SQL table structure.
 
 This utility is intended to help people get started with GraphQL. It is **NOT** intended to be used in production.
 
+## Installation
+
+`npm install -g sql-to-graphql`
+
 ## Usage
 
 `sql2graphql <command> [options]`
