@@ -23,6 +23,7 @@ var steps = {
 
 // Command vs requirements
 opts.command = (opts._ || [])[0];
+opts.user = opts.backend !== 'mysql' && opts.user === 'root' ? (process.env.USER || 'root') : opts.user;
 
 var commands = ['app', 'print', 'definition'];
 if (!opts.command || !opts.command.length) {

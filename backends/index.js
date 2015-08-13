@@ -1,7 +1,9 @@
 'use strict';
 
 var adapters = {
-    mysql: require('./mysql')
+    mysql: require('./mysql'),
+    postgres: require('./postgres'),
+    pg: require('./postgres')
 };
 
 module.exports = function getBackendAdapter(db) {
