@@ -5,6 +5,7 @@ var snakeCase = require('lodash/string/snakeCase');
 var b = require('ast-types').builders;
 var buildVar = require('./ast-builders/variable');
 var buildResolver = require('./ast-builders/resolver');
+var buildFieldWrapperFunction = require('./ast-builders/field-wrapper-function');
 
 var typeMap = {
     'id': 'GraphQLID',
@@ -53,7 +54,7 @@ function generateTypes(data, opts) {
             b.property(
                 'init',
                 b.identifier('fields'),
-                buildFieldWrapperFunc(name, b.objectExpression(fields))
+                buildFieldWrapperFunction(name, b.objectExpression(fields), opts)
             )
         ]);
 
@@ -67,22 +68,6 @@ function generateTypes(data, opts) {
                 opts.es6
             )
         };
-    }
-
-    function buildFieldWrapperFunc(name, fields) {
-        if (opts.es6) {
-            return b.arrowFunctionExpression([], fields);
-        }
-
-        return b.functionExpression(
-            b.identifier('get' + name + 'Fields'),
-            [],
-            b.blockStatement([
-                b.returnStatement(
-                    fields
-                )
-            ])
-        );
     }
 
     function generateDescription(description) {
