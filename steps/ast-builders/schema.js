@@ -5,6 +5,7 @@ var map = require('lodash/collection/map');
 var b = require('ast-types').builders;
 var buildVar = require('./variable');
 var buildQuery = require('./query');
+var buildFieldWrapperFunction = require('./field-wrapper-function');
 
 module.exports = function(data, opts) {
     return buildVar('schema',
@@ -18,14 +19,18 @@ module.exports = function(data, opts) {
                         b.identifier('GraphQLObjectType'),
                         [b.objectExpression([
                             b.property('init', b.identifier('name'), b.literal('RootQueryType')),
-                            b.property('init', b.identifier('fields'), b.objectExpression(
-                                map(data.types, function(type) {
-                                    return b.property(
-                                        'init',
-                                        b.identifier(camelCase(type.name)),
-                                        buildQuery(type, data, opts)
-                                    );
-                                })
+                            b.property('init', b.identifier('fields'), buildFieldWrapperFunction(
+                                'RootQuery',
+                                b.objectExpression(
+                                    map(data.types, function(type) {
+                                        return b.property(
+                                            'init',
+                                            b.identifier(camelCase(type.name)),
+                                            buildQuery(type, data, opts)
+                                        );
+                                    })
+                                ),
+                                opts
                             ))
                         ])]
                     )
