@@ -6,7 +6,7 @@ export default function getResolver(opts) {
     return function resolveEntity(parent, args, src, ast, type) {
         const isList = type instanceof GraphQLList;
         const clauses = getClauses(ast, opts.aliases);
-        const selection = getSelectionSet(ast, opts.aliases, opts.referenceMap);
+        const selection = getSelectionSet(type, ast, opts.aliases, opts.referenceMap);
         const hasPkSelected = (
             opts.primaryKey &&
             selection.some(item => item.indexOf(opts.primaryKey) === 0)
@@ -28,16 +28,24 @@ export default function getResolver(opts) {
     };
 }
 
-function getSelectionSet(ast, aliases, referenceMap) {
+function getSelectionSet(type, ast, aliases, referenceMap) {
     return ast.selectionSet.selections.reduce(function reduceSelectionSet(set, selection) {
-        let alias, field;
 
-        // For fields with its own selection set, we need to fetch the reference ID
-        if (selection.selectionSet && referenceMap) {
+        // If we encounter a selection with a type condition, make sure it's the correct type
+        if (selection.typeCondition && selection.typeCondition.name.value !== type) {
+            return set;
+        }
+
+        let alias, field;
+        if (selection.kind === 'Field' && selection.selectionSet && referenceMap) {
+            // For fields with its own selection set, we need to fetch the reference ID
             alias = referenceMap[selection.name.value];
             field = getUnaliasedName(alias, aliases);
             set.push(field || alias);
             return set;
+        } else if (selection.kind === 'InlineFragment' && selection.selectionSet) {
+            // And for inline fragments, we need to recurse down and combine the set
+            return set.concat(getSelectionSet(type, selection, aliases, referenceMap));
         } else if (selection.selectionSet) {
             return set;
         }
