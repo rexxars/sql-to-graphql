@@ -2,6 +2,7 @@
 
 var fs = require('fs');
 var path = require('path');
+var merge = require('lodash/object/merge');
 var recast = require('recast');
 var mkdirp = require('mkdirp');
 var printAst = require('../util/print-ast');
@@ -12,6 +13,10 @@ var buildSchemaModule = require('./ast-builders/schema-module');
 var copyTemplates = require('./copy-templates');
 
 function outputData(data, opts, callback) {
+    if (opts.relay) {
+        opts = merge({}, opts, { isFromSchema: true });
+    }
+
     if (!opts.outputDir) {
         printAst(
             buildProgram(data, opts),

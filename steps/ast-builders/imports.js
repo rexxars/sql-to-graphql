@@ -40,6 +40,18 @@ function cjsImport(graphql, others, opts) {
         ));
     }
 
+    if (opts.relay && opts.isFromSchema) {
+        declarations.push(b.variableDeclaration('var',
+            [b.variableDeclarator(
+                b.identifier('GraphRelay'),
+                b.callExpression(
+                    b.identifier('require'),
+                    [b.literal('graphql-relay')]
+                )
+            )]
+        ));
+    }
+
     if (others.length && !opts.skipLocalImports) {
         others.forEach(function(item) {
             declarations.push(
@@ -69,6 +81,21 @@ function cjsImport(graphql, others, opts) {
             ));
     });
 
+    if (opts.relay && opts.isFromSchema) {
+        declarations.push(
+            b.variableDeclaration('var',
+                [b.variableDeclarator(
+                    b.identifier('globalIdField'),
+                    b.memberExpression(
+                        b.identifier('GraphRelay'),
+                        b.identifier('globalIdField'),
+                        false
+                    )
+                )]
+            )
+        );
+    }
+
     return declarations;
 }
 
@@ -87,6 +114,13 @@ function es6Import(graphql, others, opts) {
                 return importSpecifier(item);
             }),
             b.literal('graphql')
+        ));
+    }
+
+    if (opts.relay && opts.isFromSchema) {
+        declarations.push(b.importDeclaration(
+            [importSpecifier('globalIdField')],
+            b.literal('graphql-relay')
         ));
     }
 
