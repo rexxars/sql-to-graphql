@@ -38,7 +38,7 @@ function generateTypes(data, opts) {
     function generateType(name, model) {
         var fields = [];
         for (var fieldName in model.fields) {
-            fields.push(generateField(model.fields[fieldName]));
+            fields.push(generateField(model.fields[fieldName], null, name));
 
             if (model.references[fieldName]) {
                 fields.push(generateReferenceField(
@@ -78,9 +78,9 @@ function generateTypes(data, opts) {
         );
     }
 
-    function generateField(field, type) {
+    function generateField(field, type, typeName) {
         var props = [
-            b.property('init', b.identifier('type'), type || getType(field)),
+            b.property('init', b.identifier('type'), type || getType(field, typeName)),
             generateDescription(field.description)
         ];
 
@@ -113,10 +113,17 @@ function generateTypes(data, opts) {
         }, b.identifier(refTypeName));
     }
 
-    function getType(field) {
+    function getType(field, parentTypeName) {
         if (field.type === 'enum') {
             addUsedType('GraphQLEnumType');
             return getEnum(field);
+        }
+
+        if (field.isPrimaryKey && opts.relay) {
+            return b.callExpression(
+                b.identifier('globalIdField'),
+                [b.literal(parentTypeName)]
+            );
         }
 
         var type = typeMap[field.type];
