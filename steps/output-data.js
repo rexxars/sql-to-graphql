@@ -9,6 +9,7 @@ var printAst = require('../util/print-ast');
 var buildType = require('./ast-builders/type');
 var buildConfig = require('./ast-builders/config');
 var buildProgram = require('./ast-builders/program');
+var buildResolveMap = require('./ast-builders/resolve-map');
 var buildSchemaModule = require('./ast-builders/schema-module');
 var copyTemplates = require('./copy-templates');
 
@@ -66,6 +67,10 @@ function outputData(data, opts, callback) {
                 fs.writeFileSync(path.join(outputDir, 'schema.js'), code);
             });
         }
+
+        // Build and write the resolve map
+        var resolveMap = recast.prettyPrint(buildResolveMap(data, opts), opts).code;
+        fs.writeFileSync(path.join(outputDir, 'resolve-map.js'), resolveMap);
 
         // Copy templates ("static" ones, should probably be named something else)
         copyTemplates(opts.es6 ? 'es6' : 'cjs', outputDir);

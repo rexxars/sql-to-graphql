@@ -48,6 +48,12 @@ function generateTypes(data, opts) {
             }
         }
 
+        var interfaces = opts.relay && b.property(
+            'init',
+            b.identifier('interfaces'),
+            b.arrayExpression([b.identifier('nodeInterface')])
+        );
+
         var typeDeclaration = b.objectExpression([
             b.property('init', b.identifier('name'), b.literal(name)),
             generateDescription(model.description),
@@ -55,7 +61,8 @@ function generateTypes(data, opts) {
                 'init',
                 b.identifier('fields'),
                 buildFieldWrapperFunction(name, b.objectExpression(fields), opts)
-            )
+            ),
+            interfaces
         ]);
 
         return {
@@ -78,9 +85,16 @@ function generateTypes(data, opts) {
         );
     }
 
-    function generateField(field, type, typeName) {
+    function generateField(field, type, parentType) {
+        if (field.isPrimaryKey && opts.relay) {
+            return b.property('init', b.identifier('id'), b.callExpression(
+                b.identifier('globalIdField'),
+                [b.literal(parentType)]
+            ));
+        }
+
         var props = [
-            b.property('init', b.identifier('type'), type || getType(field, typeName)),
+            b.property('init', b.identifier('type'), type || getType(field)),
             generateDescription(field.description)
         ];
 
@@ -109,21 +123,14 @@ function generateTypes(data, opts) {
         return generateField({
             name: refersTo.field,
             description: description,
-            resolve: opts.outputDir && buildResolver(refersTo.model, data, refField.originalName)
+            resolve: opts.outputDir && buildResolver(refersTo.model, refField.originalName)
         }, b.identifier(refTypeName));
     }
 
-    function getType(field, parentTypeName) {
+    function getType(field) {
         if (field.type === 'enum') {
             addUsedType('GraphQLEnumType');
             return getEnum(field);
-        }
-
-        if (field.isPrimaryKey && opts.relay) {
-            return b.callExpression(
-                b.identifier('globalIdField'),
-                [b.literal(parentTypeName)]
-            );
         }
 
         var type = typeMap[field.type];

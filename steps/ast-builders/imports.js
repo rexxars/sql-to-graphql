@@ -50,6 +50,21 @@ function cjsImport(graphql, others, opts) {
                 )
             )]
         ));
+
+        declarations.push(b.variableDeclaration('var',
+            [b.variableDeclarator(
+                b.identifier('registerType'),
+
+                b.memberExpression(
+                    b.callExpression(
+                        b.identifier('require'),
+                        [b.literal('./resolve-map')]
+                    ),
+                    b.identifier('registerType'),
+                    false
+                )
+            )]
+        ));
     }
 
     if (others.length && !opts.skipLocalImports) {
@@ -82,17 +97,19 @@ function cjsImport(graphql, others, opts) {
     });
 
     if (opts.relay && opts.isFromSchema) {
-        declarations.push(
-            b.variableDeclaration('var',
-                [b.variableDeclarator(
-                    b.identifier('globalIdField'),
-                    b.memberExpression(
-                        b.identifier('GraphRelay'),
-                        b.identifier('globalIdField'),
-                        false
-                    )
-                )]
-            )
+        declarations = declarations.concat(
+            ['globalIdField', 'nodeDefinitions', 'fromGlobalId'].map(function(rg) {
+                return b.variableDeclaration('var',
+                    [b.variableDeclarator(
+                        b.identifier(rg),
+                        b.memberExpression(
+                            b.identifier('GraphRelay'),
+                            b.identifier(rg),
+                            false
+                        )
+                    )]
+                );
+            })
         );
     }
 
@@ -110,17 +127,20 @@ function es6Import(graphql, others, opts) {
 
     if (graphql.length) {
         declarations.push(b.importDeclaration(
-            graphql.map(function(item) {
-                return importSpecifier(item);
-            }),
+            graphql.map(importSpecifier),
             b.literal('graphql')
         ));
     }
 
     if (opts.relay && opts.isFromSchema) {
         declarations.push(b.importDeclaration(
-            [importSpecifier('globalIdField')],
+            ['globalIdField', 'nodeDefinitions', 'fromGlobalId'].map(importSpecifier),
             b.literal('graphql-relay')
+        ));
+
+        declarations.push(b.importDeclaration(
+            [importSpecifier('registerType')],
+            b.literal('./resolve-map')
         ));
     }
 
@@ -138,7 +158,7 @@ function es6Import(graphql, others, opts) {
 // Couldn't figure out b.importSpecifier
 function importSpecifier(name, def) {
     return {
-        type: def ? 'ImportDefaultSpecifier' : 'ImportSpecifier',
+        type: def === true ? 'ImportDefaultSpecifier' : 'ImportSpecifier',
         id: {
             type: 'Identifier',
             name: name
