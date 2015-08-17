@@ -38,7 +38,7 @@ function generateTypes(data, opts) {
     function generateType(name, model) {
         var fields = [];
         for (var fieldName in model.fields) {
-            fields.push(generateField(model.fields[fieldName]));
+            fields.push(generateField(model.fields[fieldName], null, name));
 
             if (model.references[fieldName]) {
                 fields.push(generateReferenceField(
@@ -48,6 +48,12 @@ function generateTypes(data, opts) {
             }
         }
 
+        var interfaces = opts.relay && b.property(
+            'init',
+            b.identifier('interfaces'),
+            b.arrayExpression([b.identifier('nodeInterface')])
+        );
+
         var typeDeclaration = b.objectExpression([
             b.property('init', b.identifier('name'), b.literal(name)),
             generateDescription(model.description),
@@ -55,7 +61,8 @@ function generateTypes(data, opts) {
                 'init',
                 b.identifier('fields'),
                 buildFieldWrapperFunction(name, b.objectExpression(fields), opts)
-            )
+            ),
+            interfaces
         ]);
 
         return {
@@ -78,7 +85,14 @@ function generateTypes(data, opts) {
         );
     }
 
-    function generateField(field, type) {
+    function generateField(field, type, parentType) {
+        if (field.isPrimaryKey && opts.relay) {
+            return b.property('init', b.identifier('id'), b.callExpression(
+                b.identifier('globalIdField'),
+                [b.literal(parentType)]
+            ));
+        }
+
         var props = [
             b.property('init', b.identifier('type'), type || getType(field)),
             generateDescription(field.description)
@@ -109,7 +123,7 @@ function generateTypes(data, opts) {
         return generateField({
             name: refersTo.field,
             description: description,
-            resolve: opts.outputDir && buildResolver(refersTo.model, data, refField.originalName)
+            resolve: opts.outputDir && buildResolver(refersTo.model, refField.originalName)
         }, b.identifier(refTypeName));
     }
 

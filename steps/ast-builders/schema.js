@@ -8,6 +8,23 @@ var buildQuery = require('./query');
 var buildFieldWrapperFunction = require('./field-wrapper-function');
 
 module.exports = function(data, opts) {
+    var queryFields = [];
+    if (opts.relay) {
+        queryFields.push(b.property(
+            'init',
+            b.identifier('node'),
+            b.identifier('nodeField')
+        ));
+    } else {
+        queryFields = map(data.types, function(type) {
+            return b.property(
+                'init',
+                b.identifier(camelCase(type.name)),
+                buildQuery(type, data, opts)
+            );
+        });
+    }
+
     return buildVar('schema',
         b.newExpression(
             b.identifier('GraphQLSchema'),
@@ -21,15 +38,7 @@ module.exports = function(data, opts) {
                             b.property('init', b.identifier('name'), b.literal('RootQueryType')),
                             b.property('init', b.identifier('fields'), buildFieldWrapperFunction(
                                 'RootQuery',
-                                b.objectExpression(
-                                    map(data.types, function(type) {
-                                        return b.property(
-                                            'init',
-                                            b.identifier(camelCase(type.name)),
-                                            buildQuery(type, data, opts)
-                                        );
-                                    })
-                                ),
+                                b.objectExpression(queryFields),
                                 opts
                             ))
                         ])]

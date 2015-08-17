@@ -25,6 +25,9 @@ var steps = {
 opts.command = (opts._ || [])[0];
 opts.user = opts.backend !== 'mysql' && opts.user === 'root' ? (process.env.USER || 'root') : opts.user;
 
+// Force recast to throw away whitespace information
+opts.reuseWhitespace = false;
+
 var commands = ['app', 'print'];
 if (!opts.command || !opts.command.length) {
     return bail(new Error('Please specify command to run - `sql2graphql [' + commands.join(' | ') + ']`'));
