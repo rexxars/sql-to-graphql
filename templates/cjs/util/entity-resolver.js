@@ -38,7 +38,10 @@ function getResolver(type) {
         var query = (
             isList ? db().select(selection) : db().first(selection)
         ).from(typeData.table).where(clauses).then(function(result) {
-            result.__type = typeData.type;
+            if (result) {
+                result.__type = typeData.type;
+            }
+
             return result;
         });
 
