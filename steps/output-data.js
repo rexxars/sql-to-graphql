@@ -11,6 +11,7 @@ var buildConfig = require('./ast-builders/config');
 var buildProgram = require('./ast-builders/program');
 var buildResolveMap = require('./ast-builders/resolve-map');
 var buildSchemaModule = require('./ast-builders/schema-module');
+var updatePackageManifest = require('./update-package');
 var copyTemplates = require('./copy-templates');
 
 function outputData(data, opts, callback) {
@@ -74,6 +75,9 @@ function outputData(data, opts, callback) {
 
         // Copy templates ("static" ones, should probably be named something else)
         copyTemplates(opts.es6 ? 'es6' : 'cjs', outputDir);
+
+        // Update package.json file with any necessary changes
+        updatePackageManifest(opts);
 
         callback();
     });
