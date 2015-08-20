@@ -151,7 +151,7 @@ function generateTypes(data, opts) {
             enumValue = field.values[name];
             values.push(b.property(
                 'init',
-                b.identifier(snakeCase(name).toUpperCase()),
+                b.literal(snakeCase(name).toUpperCase()),
                 b.objectExpression([
                     b.property('init', b.identifier('value'), b.literal(enumValue.value)),
                     generateDescription(enumValue.description)
