@@ -2,10 +2,9 @@
 
 var b = require('ast-types').builders;
 
-module.exports = function buildResolver(model, refField) {
-    var ref = refField ? [b.literal(refField)] : [];
+module.exports = function buildResolver(model) {
     return b.callExpression(
         b.identifier('getEntityResolver'),
-        [b.literal(model.name)].concat(ref)
+        [b.literal(model.name)]
     );
 };

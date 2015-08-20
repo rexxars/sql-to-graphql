@@ -38,7 +38,7 @@ function generateTypes(data, opts) {
     function generateType(name, model) {
         var fields = [];
         for (var fieldName in model.fields) {
-            fields.push(generateField(model.fields[fieldName], null, name));
+            fields.push(generateField(model.fields[fieldName], null, name, model));
 
             if (model.references[fieldName]) {
                 fields.push(generateReferenceField(
@@ -61,9 +61,8 @@ function generateTypes(data, opts) {
                 'init',
                 b.identifier('fields'),
                 buildFieldWrapperFunction(name, b.objectExpression(fields), opts)
-            ),
-            interfaces
-        ]);
+            )
+        ].concat(interfaces || []));
 
         return {
             ast: buildVar(
@@ -85,16 +84,16 @@ function generateTypes(data, opts) {
         );
     }
 
-    function generateField(field, type, parentType) {
+    function generateField(field, type, parentName, parentModel) {
         if (field.isPrimaryKey && opts.relay) {
             return b.property('init', b.identifier('id'), b.callExpression(
                 b.identifier('globalIdField'),
-                [b.literal(parentType)]
+                [b.literal(parentName)]
             ));
         }
 
         var props = [
-            b.property('init', b.identifier('type'), type || getType(field)),
+            b.property('init', b.identifier('type'), type || getType(field, parentModel)),
             generateDescription(field.description)
         ];
 
@@ -127,10 +126,10 @@ function generateTypes(data, opts) {
         }, b.identifier(refTypeName));
     }
 
-    function getType(field) {
+    function getType(field, model) {
         if (field.type === 'enum') {
             addUsedType('GraphQLEnumType');
-            return getEnum(field);
+            return getEnum(field, model);
         }
 
         var type = typeMap[field.type];
@@ -146,7 +145,7 @@ function generateTypes(data, opts) {
         return identifier;
     }
 
-    function getEnum(field) {
+    function getEnum(field, model) {
         var values = [], enumValue;
         for (var name in field.values) {
             enumValue = field.values[name];
@@ -161,7 +160,7 @@ function generateTypes(data, opts) {
         }
 
         var typeDeclaration = b.objectExpression([
-            b.property('init', b.identifier('name'), b.literal(capitalize(field.name))),
+            b.property('init', b.identifier('name'), b.literal(model.name + capitalize(field.name))),
             generateDescription(field.description),
             b.property('init', b.identifier('values'), b.objectExpression(values))
         ]);

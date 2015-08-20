@@ -29,7 +29,7 @@ module.exports = function buildQuery(type, data, opts) {
     ].concat(opts.outputDir ? [b.property(
         'init',
         b.identifier('resolve'),
-        buildResolver(type, data)
+        buildResolver(type)
     )] : []));
 };
 
