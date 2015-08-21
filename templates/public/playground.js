@@ -9,6 +9,8 @@ var App = React.createClass({
             return;
         }
 
+        this.setState({ loading: true });
+
         var query = editor.getValue();
         localStorage.editorValue = query;
 
@@ -26,14 +28,16 @@ var App = React.createClass({
     onError: function(res) {
         this.setState({
             error: JSON.parse(res.responseText).message,
-            response: null
+            response: null,
+            loading: false
         });
     },
 
     onSuccess: function(res) {
         this.setState({
             error: null,
-            response: res
+            response: res,
+            loading: false
         });
     },
 
@@ -46,7 +50,12 @@ var App = React.createClass({
             return <QueryError errors={this.state.error} />;
         }
 
-        return <QueryResponse response={this.state.response} />;
+        return (
+            <QueryResponse
+                loading={this.state.loading}
+                response={this.state.response}
+            />
+        );
     },
 
     getKeyBinding: function() {
@@ -116,8 +125,8 @@ var QueryResponse = React.createClass({
         this.setValue(this.props);
     },
 
-    componentWillReceiveProps: function(props) {
-        this.setValue(props);
+    componentDidUpdate: function() {
+        this.setValue(this.props);
     },
 
     setValue: function(props) {
@@ -125,27 +134,27 @@ var QueryResponse = React.createClass({
             var el = React.findDOMNode(this.refs.res);
             this.editor = ace.edit(el);
             this.editor.setTheme('ace/theme/monokai');
-            this.editor.setShowPrintMargin(false);    
+            this.editor.setShowPrintMargin(false);
             this.editor.getSession().setMode('ace/mode/json');
             this.editor.getSession().setUseWrapMode(true);
             this.editor.setReadOnly(true);
         }
 
-        this.editor.setValue(
-            JSON.stringify(props.response.data, null, 4),
-            1
-        );
-    },
-
-    shouldComponentUpdate: function() {
-        return false;
+        var response = (props && props.response) || {};
+        if (response.data) {
+            this.editor.setValue(
+                JSON.stringify(response.data, null, 4),
+                1
+            );
+        }
     },
 
     render: function() {
         return (
             <div className="response">
                 <h2>Response</h2>
-                <div className="editor" ref="res"></div>
+                {this.props.loading ? <div className="loading" /> : null}
+                <div className="editor" ref="res" />
             </div>
         )
     }

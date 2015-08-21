@@ -12,12 +12,10 @@ function getResolver(type) {
     }
 
     var pkAlias = typeData.primaryKey ? typeData.aliases[typeData.primaryKey] : null;
-    return function resolveEntity(parent, args, ast, override) {
-        var operation = ast.operation.selectionSet.selections[0];
-
+    return function resolveEntity(parent, args, ast) {
         var isList = ast.returnType instanceof GraphQL.GraphQLList;
-        var clauses = getClauses(override || ast, typeData.aliases);
-        var selection = getSelectionSet(type, operation, typeData.aliases, typeData.referenceMap);
+        var clauses = getClauses(ast, args, typeData.aliases);
+        var selection = getSelectionSet(type, ast.fieldASTs[0], typeData.aliases, typeData.referenceMap);
         var hasPkSelected = (
             typeData.primaryKey &&
             selection.some(function(item) {
@@ -29,10 +27,14 @@ function getResolver(type) {
             selection.unshift(getAliasSelection(typeData.primaryKey, pkAlias));
         }
 
-        var refField = typeData.referenceMap[ast.fieldName];
-        if (parent && refField) {
-            var unliasedRef = getUnaliasedName(refField, typeData.aliases);
-            clauses[typeData.primaryKey] = parent[refField] || parent[unliasedRef];
+        if (parent) {
+            var parentTypeData = resolveMap[ast.parentType.name];
+            var refField = parentTypeData.referenceMap[ast.fieldName];
+
+            if (refField) {
+                var unliasedRef = getUnaliasedName(refField, parentTypeData.aliases);
+                clauses[typeData.primaryKey] = parent[refField] || parent[unliasedRef];
+            }
         }
 
         var query = (
@@ -77,18 +79,23 @@ function getSelectionSet(type, ast, aliases, referenceMap) {
     }, []);
 }
 
-function getClauses(ast, aliases) {
-    if (!ast.arguments) {
-        return {};
-    }
+function getClauses(ast, args, aliases) {
+    var clauses = Object.keys(args).reduce(function(query, alias) {
+        var field = getUnaliasedName(alias, aliases);
+        query[field || alias] = args[alias];
+        return query;
+    }, {});
 
+    if (!ast.arguments) {
+        return clauses;
+    }
 
     return ast.arguments.reduce(function reduceClause(query, arg) {
         var alias = arg.name.value;
         var field = getUnaliasedName(alias, aliases);
         query[field || alias] = typecastValue(arg.value);
         return query;
-    }, {});
+    }, clauses);
 }
 
 function typecastValue(value) {

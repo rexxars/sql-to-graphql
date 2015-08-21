@@ -2,8 +2,7 @@
 
 module.exports = require('yargs')
     .usage('Usage: $0 <command> [options]')
-    .command('app', 'Create a demo app based on Hapi that can be used to query the generated schema')
-    .command('print', 'Print the generated schema to console')
+    .command('app', 'Create HTTP-server based on Hapi that can be used to query the generated schema')
     .option('database', {
         alias: 'db',
         demand: true,
@@ -62,12 +61,6 @@ module.exports = require('yargs')
     .option('interactive', {
         alias: 'i',
         describe: 'Interactive mode (prompt for confirmations)',
-        type: 'boolean',
-        'default': false
-    })
-    .option('colors', {
-        alias: 'c',
-        describe: 'Colorize the code output',
         type: 'boolean',
         'default': false
     })

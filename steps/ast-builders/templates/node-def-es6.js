@@ -1,9 +1,12 @@
+import {nodeDefinitions, fromGlobalId} from 'graphql-relay';
+import getEntityResolver from '../util/entity-resolver';
+
 const {nodeInterface, nodeField} = nodeDefinitions(
     function(globalId, ast) {
-        var {type, id} = fromGlobalId(globalId);
-        var fieldKind = id.match(/^[0-9]+$/) ? 'IntValue' : 'StringValue';
-        var override = { arguments: [{ name: { value: 'id' }, value: { value: id, kind: fieldKind } }] };
-        return getEntityResolver(type)(null, {}, ast, override);
+        let {type, id} = fromGlobalId(globalId);
+        return getEntityResolver(type)(null, { id }, ast);
     },
     data => data.__type
 );
+
+export { nodeInterface, nodeField };

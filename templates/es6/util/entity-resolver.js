@@ -10,12 +10,10 @@ export default function getResolver(type) {
     }
 
     const pkAlias = typeData.primaryKey ? typeData.aliases[typeData.primaryKey] : null;
-    return function resolveEntity(parent, args, ast, override) {
-        const operation = ast.operation.selectionSet.selections[0];
-
+    return function resolveEntity(parent, args, ast) {
         const isList = ast.returnType instanceof GraphQLList;
-        const clauses = getClauses(override || ast, typeData.aliases);
-        const selection = getSelectionSet(type, operation, typeData.aliases, typeData.referenceMap);
+        const clauses = getClauses(ast, args, typeData.aliases);
+        const selection = getSelectionSet(type, ast.fieldASTs[0], typeData.aliases, typeData.referenceMap);
         const hasPkSelected = (
             typeData.primaryKey &&
             selection.some(item => item.indexOf(typeData.primaryKey) === 0)
@@ -25,10 +23,14 @@ export default function getResolver(type) {
             selection.unshift(getAliasSelection(typeData.primaryKey, pkAlias));
         }
 
-        const refField = typeData.referenceMap[ast.fieldName];
-        if (parent && refField) {
-            let unliasedRef = getUnaliasedName(refField, typeData.aliases);
-            clauses[typeData.primaryKey] = parent[refField] || parent[unliasedRef];
+        if (parent) {
+            const parentTypeData = resolveMap[ast.parentType.name];
+            const refField = parentTypeData.referenceMap[ast.fieldName];
+
+            if (refField) {
+                const unliasedRef = getUnaliasedName(refField, parentTypeData.aliases);
+                clauses[typeData.primaryKey] = parent[refField] || parent[unliasedRef];
+            }
         }
 
         const query = (
@@ -69,9 +71,15 @@ function getSelectionSet(type, ast, aliases, referenceMap) {
     }, []);
 }
 
-function getClauses(ast, aliases) {
+function getClauses(ast, args, aliases) {
+    var clauses = Object.keys(args).reduce(function(query, alias) {
+        let field = getUnaliasedName(alias, aliases);
+        query[field || alias] = args[alias];
+        return query;
+    }, {});
+
     if (!ast.arguments) {
-        return {};
+        return clauses;
     }
 
     return ast.arguments.reduce(function reduceClause(query, arg) {
@@ -79,7 +87,7 @@ function getClauses(ast, aliases) {
         let field = getUnaliasedName(alias, aliases);
         query[field || alias] = typecastValue(arg.value);
         return query;
-    }, {});
+    }, clauses);
 }
 
 function typecastValue(value) {
