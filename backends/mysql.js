@@ -1,15 +1,17 @@
 'use strict';
 
-var mysql = require('mysql');
-var chain = require('lodash').chain;
+var knex = require('knex');
+var pluck = require('lodash/collection/pluck');
 var mapKeys = require('lodash/object/mapKeys');
 var contains = require('lodash/collection/includes');
-var mapValues = require('lodash/object/mapValues');
 var camelCase = require('lodash/string/camelCase');
-var queries = getQueries(), undef;
+var undef;
 
 module.exports = function mysqlBackend(opts, callback) {
-    var connection = mysql.createConnection(opts);
+    var mysql = knex({
+        client: 'mysql',
+        connection: opts
+    });
 
     process.nextTick(callback);
 
@@ -17,71 +19,67 @@ module.exports = function mysqlBackend(opts, callback) {
         getTables: function(tableNames, cb) {
             var matchAll = tableNames.length === 1 && tableNames[0] === '*';
 
-            connection.query(queries.tableNames, [opts.db], function(err, tbls) {
-                cb(err, chain(tbls || [])
-                    .pluck('table_name')
-                    .filter(function(tbl) {
-                        return matchAll || contains(tableNames, tbl);
-                    })
-                    .value()
-                );
-            });
+            mysql
+                .distinct('table_name')
+                .from('information_schema.columns')
+                .where('table_schema', opts.db)
+                .catch(cb)
+                .then(function(tbls) {
+                    tbls = pluck(tbls, 'table_name');
+
+                    if (!matchAll) {
+                        tbls = tbls.filter(function(tbl) {
+                            return contains(tableNames, tbl);
+                        });
+                    }
+
+                    cb(null, tbls);
+                });
         },
 
         getTableComment: function(tableName, cb) {
-            connection.query(queries.tableComment, [opts.db, tableName], function(err, info) {
-                cb(err, ((info || [])[0] || {}).table_comment || undef);
-            });
+            mysql
+                .first('table_comment AS comment')
+                .from('information_schema.tables')
+                .where({
+                    'table_schema': opts.db,
+                    'table_name': tableName
+                })
+                .catch(cb)
+                .then(function(info) {
+                    cb(null, info ? info.comment || undef : undef);
+                });
         },
 
         getTableStructure: function(tableName, cb) {
-            connection.query(queries.columnInfo, [opts.db, tableName], function(err, info) {
-                cb(err, (info || []).map(camelCaseKeys));
-            });
+            mysql
+                .select([
+                    'table_name',
+                    'column_name',
+                    'ordinal_position',
+                    'is_nullable',
+                    'data_type',
+                    'column_key',
+                    'column_type',
+                    'column_comment'
+                ])
+                .from('information_schema.columns')
+                .where({
+                    'table_schema': opts.db,
+                    'table_name': tableName
+                })
+                .orderBy('ordinal_position', 'asc')
+                .catch(cb)
+                .then(function(info) {
+                    cb(null, (info || []).map(camelCaseKeys));
+                });
         },
 
         close: function(cb) {
-            connection.end(cb);
+            mysql.destroy(cb);
         }
     };
 };
-
-function getQueries() {
-    return mapValues({
-        tableNames: [
-            'SELECT DISTINCT(`table_name`)',
-            'FROM `information_schema`.`columns`',
-            'WHERE `table_schema` = ?'
-        ],
-
-        tableComment: [
-            'SELECT `table_comment`',
-            'FROM `information_schema`.`tables`',
-            'WHERE `table_schema` = ?',
-            'AND `table_name` = ?'
-        ],
-
-        columnInfo: [
-            'SELECT ',
-            '`table_name`,',
-            '`column_name`,',
-            '`ordinal_position`,',
-            '`is_nullable`,',
-            '`data_type`,',
-            '`column_key`,',
-            '`column_type`,',
-            '`column_comment`',
-            'FROM `information_schema`.`columns`',
-            'WHERE `table_schema` = ?',
-            'AND `table_name` = ?',
-            'ORDER BY `ordinal_position` ASC'
-        ]
-    }, join);
-}
-
-function join(parts) {
-    return parts.join(' ');
-}
 
 function camelCaseKeys(obj) {
     return mapKeys(obj, function(val, key) {
