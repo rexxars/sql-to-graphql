@@ -66,7 +66,8 @@ module.exports = require('yargs')
     })
     .option('output-dir', {
         describe: 'Print output into separate files within the given directory',
-        type: 'string'
+        type: 'string',
+        demand: true
     })
     .option('es6', {
         describe: 'Output in ES6 format (const, import et all)',
