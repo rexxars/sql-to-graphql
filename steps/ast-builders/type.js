@@ -5,11 +5,20 @@ var buildTypeImports = require('./type-imports');
 var buildExports = require('./exports');
 
 module.exports = function buildType(type, opts) {
-    return b.program(
-        buildTypeImports(type, opts)
-            .concat(type.ast)
-            .concat([
-                buildExports(b.identifier(type.varName), opts)
-            ])
+    var imports = buildTypeImports(type, opts);
+    var typeAst = type.ast;
+    var typeExport = [buildExports(b.identifier(type.varName), opts)];
+    var register = [b.expressionStatement(
+        b.callExpression(
+            b.identifier('registerType'),
+            [b.identifier(type.varName)]
+        )
+    )];
+
+    return b.program([]
+        .concat(imports)
+        .concat(typeAst)
+        .concat(register)
+        .concat(typeExport)
     );
 };

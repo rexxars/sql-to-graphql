@@ -26,6 +26,19 @@ function cjsImport(graphql, others, opts) {
         )
     ];
 
+    // Require the resolve map
+    declarations.push(
+        b.variableDeclaration('var',
+            [b.variableDeclarator(
+                b.identifier('resolveMap'),
+                b.callExpression(
+                    b.identifier('require'),
+                    [b.literal('../resolve-map')]
+                )
+            )]
+        )
+    );
+
     // Require the graphql library
     if (graphql.length) {
         declarations.push(b.variableDeclaration('var',
@@ -86,7 +99,7 @@ function cjsImport(graphql, others, opts) {
                     false
                 )
             )]
-        )
+        );
     }));
 
     // We need the nodeInterface from the Node type and the globalIdField from relay
@@ -118,6 +131,32 @@ function cjsImport(graphql, others, opts) {
         );
     }
 
+    declarations.push(
+        b.variableDeclaration('var',
+            [b.variableDeclarator(
+                b.identifier('getType'),
+                b.memberExpression(
+                    b.identifier('resolveMap'),
+                    b.identifier('getType'),
+                    false
+                )
+            )]
+        )
+    );
+
+    declarations.push(
+        b.variableDeclaration('var',
+            [b.variableDeclarator(
+                b.identifier('registerType'),
+                b.memberExpression(
+                    b.identifier('resolveMap'),
+                    b.identifier('registerType'),
+                    false
+                )
+            )]
+        )
+    );
+
     return declarations;
 }
 
@@ -126,6 +165,11 @@ function es6Import(graphql, others, opts) {
         b.importDeclaration(
             [importSpecifier('getEntityResolver', true)],
             b.literal('../util/entity-resolver')
+        ),
+
+        b.importDeclaration(
+            [importSpecifier('getType'), importSpecifier('registerType')],
+            b.literal('../resolve-map')
         )
     ];
 
