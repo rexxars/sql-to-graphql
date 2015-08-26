@@ -12,6 +12,7 @@ var steps = {
     getTables: require('./steps/table-list'),
     tableToObject: require('./steps/table-to-object'),
     findReferences: require('./steps/find-references'),
+    findOneToManyReferences: require('./steps/find-one-to-many-rels'),
     generateTypes: require('./steps/generate-types'),
     outputData: require('./steps/output-data'),
 
@@ -87,7 +88,6 @@ function onTablesSelected(tables) {
 // When table data has been collected, build an object representation of them
 function onTableDataCollected(err, data) {
     bailOnError(err);
-    adapter.close();
 
     var tableName, models = {}, model;
     for (tableName in data.tableStructure) {
@@ -101,9 +101,18 @@ function onTableDataCollected(err, data) {
     }
 
     data.models = steps.findReferences(models);
-    data.types = steps.generateTypes(data, opts);
 
-    steps.outputData(data, opts, onDataOutput);
+    // Note: This mutates the models - sorry. PRs are welcome.
+    steps.findOneToManyReferences(adapter, data.models, function(refErr) {
+        if (refErr) {
+            throw refErr;
+        }
+
+        data.types = steps.generateTypes(data, opts);
+
+        adapter.close();
+        steps.outputData(data, opts, onDataOutput);
+    });
 }
 
 // When the data has been written to stdout/files
