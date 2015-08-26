@@ -75,6 +75,19 @@ module.exports = function mysqlBackend(opts, callback) {
                 });
         },
 
+        hasDuplicateValues: function(table, column, cb) {
+            mysql
+                .count(column + ' as hasSameValues')
+                .from(table)
+                .groupBy(column)
+                .having('hasSameValues', '>', 1)
+                .limit(1)
+                .catch(cb)
+                .then(function(info) {
+                    cb(null, (info || []).length > 0);
+                });
+        },
+
         close: function(cb) {
             mysql.destroy(cb);
         }
