@@ -3,6 +3,7 @@
 var GraphQL = require('graphql');
 var resolveMap = require('../resolve-map').resolveMap;
 var db = require('../db')
+var config = require('../config/config');
 
 function getResolver(type) {
     var typeData = resolveMap[type];
@@ -30,24 +31,34 @@ function getResolver(type) {
         if (parent) {
             var parentTypeData = resolveMap[ast.parentType.name];
             var refField = parentTypeData.referenceMap[ast.fieldName];
+            var listRefField = parentTypeData.listReferences[ast.fieldName];
 
             if (refField) {
                 var unliasedRef = getUnaliasedName(refField, parentTypeData.aliases);
                 clauses[typeData.primaryKey] = parent[refField] || parent[unliasedRef];
+            } else if (listRefField) {
+                var parentPk = parentTypeData.aliases[parentTypeData.primaryKey] || parentTypeData.primaryKey;
+                clauses[listRefField] = parent[parentPk];
             }
         }
 
         var query = (
             isList ? db().select(selection) : db().first(selection)
-        ).from(typeData.table).where(clauses).then(function(result) {
+        ).from(typeData.table).where(clauses).limit(25);
+
+        if (config.debug) {
+            console.log(query.toSQL());
+        }
+
+        // @TODO Find a much less hacky and error prone to handle this
+        // Ties together with the Node type in Relay!
+        return query.then(function(result) {
             if (result) {
                 result.__type = typeData.type;
             }
 
             return result;
         });
-
-        return query;
     };
 }
 
@@ -63,7 +74,9 @@ function getSelectionSet(type, ast, aliases, referenceMap) {
             // For fields with its own selection set, we need to fetch the reference ID
             alias = referenceMap[selection.name.value];
             field = getUnaliasedName(alias, aliases);
-            set.push(field || alias);
+            if (field || alias) {
+                set.push(field || alias);
+            }
             return set;
         } else if (selection.kind === 'InlineFragment' && selection.selectionSet) {
             // And for inline fragments, we need to recurse down and combine the set
