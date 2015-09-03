@@ -7,6 +7,7 @@ var capitalize = require('lodash/string/capitalize');
 function findReferences(models) {
     for (var type in models) {
         models[type].references = findReferencesForModel(models[type], models);
+        models[type].listReferences = [];
     }
 
     return models;
