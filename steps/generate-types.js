@@ -17,6 +17,12 @@ var typeMap = {
     'boolean': 'GraphQLBoolean'
 };
 
+function exclude(arr, val) {
+    return arr.filter(function(type) {
+        return type !== val;
+    });
+}
+
 function generateTypes(data, opts) {
     var types = {}, typesUsed;
     for (var typeName in data.models) {
@@ -24,9 +30,7 @@ function generateTypes(data, opts) {
         types[typeName] = generateType(typeName, data.models[typeName]);
         types[typeName].varName = typeName + 'Type';
         types[typeName].name = typeName;
-        types[typeName].imports = typesUsed.filter(function(type) {
-            return type !== types[typeName].varName;
-        });
+        types[typeName].imports = exclude(typesUsed, types[typeName].varName);
     }
 
     return types;

@@ -2,7 +2,7 @@
 
 var GraphQL = require('graphql');
 var resolveMap = require('../resolve-map').resolveMap;
-var db = require('../db')
+var db = require('../db');
 var config = require('../config/config');
 
 function getResolver(type) {
@@ -17,12 +17,11 @@ function getResolver(type) {
         var isList = ast.returnType instanceof GraphQL.GraphQLList;
         var clauses = getClauses(ast, args, typeData.aliases);
         var selection = getSelectionSet(type, ast.fieldASTs[0], typeData.aliases, typeData.referenceMap);
-        var hasPkSelected = (
+        var hasPkSelected =
             typeData.primaryKey &&
             selection.some(function(item) {
                 return item.indexOf(typeData.primaryKey) === 0;
-            })
-        );
+            });
 
         if (typeData.primaryKey && !hasPkSelected) {
             selection.unshift(getAliasSelection(typeData.primaryKey, pkAlias));
