@@ -65,6 +65,7 @@ module.exports = require('yargs')
         'default': false
     })
     .option('output-dir', {
+        alias: 'o',
         describe: 'Print output into separate files within the given directory',
         type: 'string',
         demand: true
