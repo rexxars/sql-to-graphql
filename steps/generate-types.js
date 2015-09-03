@@ -38,18 +38,19 @@ function generateTypes(data, opts) {
     }
 
     function generateType(name, model) {
-        var fields = [], ref;
+        var fields = [], refs;
+
         for (var fieldName in model.fields) {
             fields.push(generateField(model.fields[fieldName], null, name, model));
 
-            ref = find(model.references, { refField: fieldName });
-            if (ref) {
-                fields.push(generateReferenceField(model.fields[fieldName], ref));
+            refs = where(model.references, { refField: fieldName });
+            for (var i = 0; i < refs.length; i++) {
+                fields.push(generateReferenceField(model.fields[fieldName], refs[i]));
             }
         }
 
-        where(model.references, { refField: null }).forEach(function(reference) {
-            fields.push(generateListReferenceField(reference));
+        model.listReferences.forEach(function(ref) {
+            fields.push(generateListReferenceField(ref));
         });
 
         var interfaces = opts.relay && b.property(
