@@ -34,8 +34,13 @@ function getTypeResolver(model) {
         table: model.table,
         primaryKey: getPrimaryKeyArg(model),
         aliases: model.aliasedFields,
-        referenceMap: getRefFieldMapArg(model)
+        referenceMap: getRefFieldMapArg(model),
+        listReferences: getListRefFieldMapArg(model)
     };
+}
+
+function getListRefFieldMapArg(model) {
+    return reduce(model.listReferences, buildReferenceMap, {});
 }
 
 function getRefFieldMapArg(model) {
