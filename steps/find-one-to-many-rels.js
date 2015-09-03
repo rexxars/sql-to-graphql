@@ -5,6 +5,7 @@ var after = require('lodash/function/after');
 var find = require('lodash/collection/find');
 var camelCase = require('lodash/string/camelCase');
 var pluralize = require('pluralize');
+var getPrimaryKey = require('../util/get-primary-key');
 
 module.exports = function findOneToManyRelationships(adapter, models, callback) {
     var tasks = Object.keys(models).reduce(function(tasklist, model) {
@@ -24,7 +25,8 @@ function findRelationships(adapter, model, models, callback) {
 
     var done = after(model.references.length, callback);
     model.references.forEach(function(ref) {
-        adapter.hasDuplicateValues(model.table, getUnaliasedField(ref.refField, model), function(err, hasDupes) {
+        var referenceColumn = getUnaliasedField(ref.refField, model);
+        adapter.hasDuplicateValues(model.table, referenceColumn, function(err, hasDupes) {
             if (err) {
                 return callback(err);
             }
@@ -34,7 +36,7 @@ function findRelationships(adapter, model, models, callback) {
             }
 
 
-            var reverseRefs = ref.model.references;
+            var reverseRefs = ref.model.listReferences;
             var refName = camelCase(pluralize(model.name));
             if (find(model.reverseRefs, { field: refName }) || ref.model.fields[refName]) {
                 refName += 'Ref';
@@ -44,7 +46,7 @@ function findRelationships(adapter, model, models, callback) {
                 model: model,
                 description: pluralize(model.name) + ' belonging to this ' + ref.model.name,
                 field: refName,
-                refField: null,
+                refField: referenceColumn,
                 isList: true
             });
 
