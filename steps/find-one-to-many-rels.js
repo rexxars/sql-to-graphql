@@ -4,8 +4,8 @@ var async = require('async');
 var after = require('lodash/function/after');
 var find = require('lodash/collection/find');
 var camelCase = require('lodash/string/camelCase');
+var capitalize = require('lodash/string/capitalize');
 var pluralize = require('pluralize');
-var getPrimaryKey = require('../util/get-primary-key');
 
 module.exports = function findOneToManyRelationships(adapter, models, callback) {
     var tasks = Object.keys(models).reduce(function(tasklist, model) {
@@ -38,13 +38,17 @@ function findRelationships(adapter, model, models, callback) {
 
             var reverseRefs = ref.model.listReferences;
             var refName = camelCase(pluralize(model.name));
-            if (find(model.reverseRefs, { field: refName }) || ref.model.fields[refName]) {
-                refName += 'Ref';
+            var description = pluralize(model.name) + ' belonging to this ' + ref.model.name;
+            if (find(reverseRefs, { field: refName }) || ref.model.fields[refName]) {
+                // @TODO find a better name algo resolve mechanism
+                // `thread_id` should naturally be `threads`, while `old_thread_id` should be.. something else
+                refName += capitalize(camelCase(referenceColumn)).replace(/Id$/, '');
+                description += '..? (' + referenceColumn + ')';
             }
 
             reverseRefs.push({
                 model: model,
-                description: pluralize(model.name) + ' belonging to this ' + ref.model.name,
+                description: description,
                 field: refName,
                 refField: referenceColumn,
                 isList: true
