@@ -7,6 +7,7 @@ var capitalize = require('lodash/string/capitalize');
 function findReferences(models) {
     for (var type in models) {
         models[type].references = findReferencesForModel(models[type], models);
+        models[type].listReferences = [];
     }
 
     return models;
@@ -34,11 +35,12 @@ function findReferencesForModel(model, models) {
                     fieldName += 'Ref';
                 }
 
-                references[col.name] = {
+                references.push({
                     model: models[name],
                     field: fieldName,
                     refField: col.name
-                };
+                });
+
                 return references;
             }
 
@@ -46,7 +48,7 @@ function findReferencesForModel(model, models) {
         } while (parts.length > 0);
 
         return references;
-    }, {});
+    }, []);
 }
 
 function isIdColumn(col) {

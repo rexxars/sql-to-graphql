@@ -13,7 +13,8 @@ module.exports = function buildResolveMap(data, opts) {
     var program = []
         .concat(buildStrict(opts))
         .concat(buildResolveMapExport(map, opts))
-        .concat(buildTypeRegisterFunc(opts));
+        .concat(buildExportedFunc(opts, getTypeRegisterAst(), 'registerType'))
+        .concat(buildExportedFunc(opts, getTypeGetterAst(), 'getType'));
 
     return b.program(program);
 };
@@ -33,8 +34,13 @@ function getTypeResolver(model) {
         table: model.table,
         primaryKey: getPrimaryKeyArg(model),
         aliases: model.aliasedFields,
-        referenceMap: getRefFieldMapArg(model)
+        referenceMap: getRefFieldMapArg(model),
+        listReferences: getListRefFieldMapArg(model)
     };
+}
+
+function getListRefFieldMapArg(model) {
+    return reduce(model.listReferences, buildReferenceMap, {});
 }
 
 function getRefFieldMapArg(model) {
@@ -72,11 +78,11 @@ function buildResolveMapExport(map, opts) {
     ];
 }
 
-function buildTypeRegisterFunc(opts) {
+function buildExportedFunc(opts, ast, name) {
     var func = (opts.es6 ? b.functionDeclaration : b.functionExpression)(
-        b.identifier('registerType'),
+        b.identifier(name),
         [b.identifier('type')],
-        b.blockStatement(getTypeRegisterAst())
+        b.blockStatement(ast)
     );
 
     if (opts.es6) {
@@ -88,7 +94,7 @@ function buildTypeRegisterFunc(opts) {
             '=',
             b.memberExpression(
                 b.identifier('exports'),
-                b.identifier('registerType'),
+                b.identifier(name),
                 false
             ),
             func
@@ -217,4 +223,117 @@ function getTypeRegisterAst() {
             }
         }
     ];
+}
+
+function getTypeGetterAst() {
+    return [{
+        'type': 'IfStatement',
+        'test': {
+            'type': 'LogicalExpression',
+            'operator': '||',
+            'left': {
+                'type': 'UnaryExpression',
+                'operator': '!',
+                'argument': {
+                    'type': 'MemberExpression',
+                    'computed': true,
+                    'object': {
+                        'type': 'Identifier',
+                        'name': 'resolveMap'
+                    },
+                    'property': {
+                        'type': 'Identifier',
+                        'name': 'type'
+                    }
+                },
+                'prefix': true
+            },
+            'right': {
+                'type': 'UnaryExpression',
+                'operator': '!',
+                'argument': {
+                    'type': 'MemberExpression',
+                    'computed': false,
+                    'object': {
+                        'type': 'MemberExpression',
+                        'computed': true,
+                        'object': {
+                            'type': 'Identifier',
+                            'name': 'resolveMap'
+                        },
+                        'property': {
+                            'type': 'Identifier',
+                            'name': 'type'
+                        }
+                    },
+                    'property': {
+                        'type': 'Identifier',
+                        'name': 'type'
+                    }
+                },
+                'prefix': true
+            }
+        },
+        'consequent': {
+            'type': 'BlockStatement',
+            'body': [
+                {
+                    'type': 'ThrowStatement',
+                    'argument': {
+                        'type': 'NewExpression',
+                        'callee': {
+                            'type': 'Identifier',
+                            'name': 'Error'
+                        },
+                        'arguments': [
+                            {
+                                'type': 'BinaryExpression',
+                                'operator': '+',
+                                'left': {
+                                    'type': 'BinaryExpression',
+                                    'operator': '+',
+                                    'left': {
+                                        'type': 'Literal',
+                                        'value': 'No type registered for type \''
+                                    },
+                                    'right': {
+                                        'type': 'Identifier',
+                                        'name': 'type'
+                                    }
+                                },
+                                'right': {
+                                    'type': 'Literal',
+                                    'value': '\''
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        'alternate': null
+    },
+    {
+        'type': 'ReturnStatement',
+        'argument': {
+            'type': 'MemberExpression',
+            'computed': false,
+            'object': {
+                'type': 'MemberExpression',
+                'computed': true,
+                'object': {
+                    'type': 'Identifier',
+                    'name': 'resolveMap'
+                },
+                'property': {
+                    'type': 'Identifier',
+                    'name': 'type'
+                }
+            },
+            'property': {
+                'type': 'Identifier',
+                'name': 'type'
+            }
+        }
+    }];
 }

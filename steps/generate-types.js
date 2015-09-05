@@ -1,5 +1,7 @@
 'use strict';
 
+var find = require('lodash/collection/find');
+var where = require('lodash/collection/where');
 var capitalize = require('lodash/string/capitalize');
 var snakeCase = require('lodash/string/snakeCase');
 var b = require('ast-types').builders;
@@ -15,6 +17,12 @@ var typeMap = {
     'boolean': 'GraphQLBoolean'
 };
 
+function exclude(arr, val) {
+    return arr.filter(function(type) {
+        return type !== val;
+    });
+}
+
 function generateTypes(data, opts) {
     var types = {}, typesUsed;
     for (var typeName in data.models) {
@@ -22,9 +30,7 @@ function generateTypes(data, opts) {
         types[typeName] = generateType(typeName, data.models[typeName]);
         types[typeName].varName = typeName + 'Type';
         types[typeName].name = typeName;
-        types[typeName].imports = typesUsed.filter(function(type) {
-            return type !== types[typeName].varName;
-        });
+        types[typeName].imports = exclude(typesUsed, types[typeName].varName);
     }
 
     return types;
@@ -36,17 +42,20 @@ function generateTypes(data, opts) {
     }
 
     function generateType(name, model) {
-        var fields = [];
+        var fields = [], refs;
+
         for (var fieldName in model.fields) {
             fields.push(generateField(model.fields[fieldName], null, name, model));
 
-            if (model.references[fieldName]) {
-                fields.push(generateReferenceField(
-                    model.fields[fieldName],
-                    model.references[fieldName]
-                ));
+            refs = where(model.references, { refField: fieldName });
+            for (var i = 0; i < refs.length; i++) {
+                fields.push(generateReferenceField(model.fields[fieldName], refs[i]));
             }
         }
+
+        model.listReferences.forEach(function(ref) {
+            fields.push(generateListReferenceField(ref));
+        });
 
         var interfaces = opts.relay && b.property(
             'init',
@@ -116,14 +125,26 @@ function generateTypes(data, opts) {
             description += ' (reference)';
         }
 
-        var refTypeName = refersTo.model.name + 'Type';
-        addUsedType(refTypeName);
-
         return generateField({
             name: refersTo.field,
             description: description,
-            resolve: opts.outputDir && buildResolver(refersTo.model, refField.originalName)
-        }, b.identifier(refTypeName));
+            resolve: buildResolver(refersTo.model, refField.originalName)
+        }, b.callExpression(
+            b.identifier('getType'),
+            [b.literal(refersTo.model.name)]
+        ));
+    }
+
+    function generateListReferenceField(reference) {
+        addUsedType('GraphQLList');
+        return generateField({
+            name: reference.field,
+            description: reference.description || opts.defaultDescription + ' (reference)',
+            resolve: buildResolver(reference.model, find(reference.model.fields, { isPrimaryKey: true }).originalName)
+        }, b.newExpression(
+            b.identifier('GraphQLList'),
+            [b.callExpression(b.identifier('getType'), [b.literal(reference.model.name)])]
+        ));
     }
 
     function getType(field, model) {

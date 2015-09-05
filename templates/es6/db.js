@@ -3,7 +3,7 @@ import config from './config/config';
 
 var db;
 
-export default function getDb(reconnect) {
+export default function getDb() {
     return db || getDb.reconnect();
 };
 
