@@ -42,6 +42,10 @@ export default function getResolver(type) {
             isList ? db().select(selection) : db().first(selection)
         ).from(typeData.table).where(clauses).limit(25);
 
+        if (isList) {
+            query.limit(args.limit || 25).offset(args.offset || 0);
+        }
+
         if (config.debug) {
             console.log(query.toSQL());
         }
@@ -89,22 +93,15 @@ function getSelectionSet(type, ast, aliases, referenceMap) {
 }
 
 function getClauses(ast, args, aliases) {
-    var clauses = Object.keys(args).reduce(function(query, alias) {
+    return Object.keys(args).reduce(function(query, alias) {
+        if (alias === 'limit' || alias === 'offset') {
+            return query;
+        }
+
         let field = getUnaliasedName(alias, aliases);
         query[field || alias] = args[alias];
         return query;
     }, {});
-
-    if (!ast.arguments) {
-        return clauses;
-    }
-
-    return ast.arguments.reduce(function reduceClause(query, arg) {
-        let alias = arg.name.value;
-        let field = getUnaliasedName(alias, aliases);
-        query[field || alias] = typecastValue(arg.value);
-        return query;
-    }, clauses);
 }
 
 function typecastValue(value) {

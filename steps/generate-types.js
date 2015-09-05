@@ -110,6 +110,10 @@ function generateTypes(data, opts) {
             props.push(b.property('init', b.identifier('resolve'), field.resolve));
         }
 
+        if (field.args) {
+            props.push(field.args);
+        }
+
         return b.property(
             'init',
             b.identifier(field.name),
@@ -140,11 +144,25 @@ function generateTypes(data, opts) {
         return generateField({
             name: reference.field,
             description: reference.description || opts.defaultDescription + ' (reference)',
-            resolve: buildResolver(reference.model, find(reference.model.fields, { isPrimaryKey: true }).originalName)
+            resolve: buildResolver(reference.model, find(reference.model.fields, { isPrimaryKey: true }).originalName),
+            args: generateLimitOffsetArgs()
         }, b.newExpression(
             b.identifier('GraphQLList'),
             [b.callExpression(b.identifier('getType'), [b.literal(reference.model.name)])]
         ));
+    }
+
+    function generateLimitOffsetArgs() {
+        return b.property('init', b.identifier('args'), b.objectExpression([
+            b.property('init', b.identifier('limit'), b.objectExpression([
+                b.property('init', b.identifier('name'), b.literal('limit')),
+                b.property('init', b.identifier('type'), b.identifier('GraphQLInt'))
+            ])),
+            b.property('init', b.identifier('offset'), b.objectExpression([
+                b.property('init', b.identifier('name'), b.literal('offset')),
+                b.property('init', b.identifier('type'), b.identifier('GraphQLInt'))
+            ]))
+        ]));
     }
 
     function getType(field, model) {
