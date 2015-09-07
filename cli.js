@@ -33,16 +33,7 @@ opts.user =
 // Force recast to throw away whitespace information
 opts.reuseWhitespace = false;
 
-var commands = ['app'];
-if (!opts.command || !opts.command.length) {
-    opts.command = 'app';
-}
-
-if (commands.indexOf(opts.command) === -1) {
-    return bail(new Error('Invalid command. Valid commands: ' + commands.join(', ')));
-}
-
-if (opts.command === 'app' && !opts.outputDir) {
+if (!opts.outputDir) {
     return bail(new Error('You need to provide an output directory (--output-dir=<path>) to generate an application'));
 }
 

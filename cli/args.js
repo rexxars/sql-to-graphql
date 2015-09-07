@@ -1,8 +1,7 @@
 'use strict';
 
 module.exports = require('yargs')
-    .usage('Usage: $0 <command> [options]')
-    .command('app', 'Create HTTP-server based on Hapi that can be used to query the generated schema')
+    .usage('Usage: $0 [options]')
     .option('database', {
         alias: 'db',
         demand: true,
