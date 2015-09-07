@@ -141,6 +141,11 @@ function generateTypes(data, opts) {
 
     function generateListReferenceField(reference) {
         addUsedType('GraphQLList');
+
+        if (opts.relay) {
+            return generateRelayReferenceField(reference);
+        }
+
         return generateField({
             name: reference.field,
             description: reference.description || opts.defaultDescription + ' (reference)',
@@ -149,6 +154,21 @@ function generateTypes(data, opts) {
         }, b.newExpression(
             b.identifier('GraphQLList'),
             [b.callExpression(b.identifier('getType'), [b.literal(reference.model.name)])]
+        ));
+    }
+
+    function generateRelayReferenceField(reference) {
+        return generateField({
+            name: reference.field,
+            description: reference.description || opts.defaultDescription + ' (reference)',
+            resolve: b.callExpression(
+                b.identifier('getConnectionResolver'),
+                [b.literal(reference.model.name)]
+            ),
+            args: b.property('init', b.identifier('args'), b.identifier('connectionArgs'))
+        }, b.callExpression(
+            b.identifier('getConnection'),
+            [b.literal(reference.model.name)]
         ));
     }
 

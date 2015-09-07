@@ -26,6 +26,20 @@ function cjsImport(graphql, others, opts) {
         )
     ];
 
+    if (opts.relay && graphql.indexOf('GraphQLList') >= 0) {
+        declarations.push(
+            b.variableDeclaration('var',
+                [b.variableDeclarator(
+                    b.identifier('getConnectionResolver'),
+                    b.callExpression(
+                        b.identifier('require'),
+                        [b.literal('../util/connection-resolver')]
+                    )
+                )]
+            )
+        );
+    }
+
     // Require the resolve map
     declarations.push(
         b.variableDeclaration('var',
@@ -103,6 +117,7 @@ function cjsImport(graphql, others, opts) {
     }));
 
     // We need the nodeInterface from the Node type and the globalIdField from relay
+    // If we have any list references, we also will need the connection stuff
     if (opts.relay) {
         declarations.push(
             b.variableDeclaration('var',
@@ -129,6 +144,19 @@ function cjsImport(graphql, others, opts) {
                 )]
             )
         );
+
+        if (graphql.indexOf('GraphQLList') >= 0) {
+            declarations.push(b.variableDeclaration('var',
+                [b.variableDeclarator(
+                    b.identifier('connectionArgs'),
+                    b.memberExpression(
+                        b.identifier('GraphQLRelay'),
+                        b.identifier('connectionArgs'),
+                        false
+                    )
+                )]
+            ));
+        }
     }
 
     declarations.push(
@@ -157,21 +185,56 @@ function cjsImport(graphql, others, opts) {
         )
     );
 
+    if (opts.relay && graphql.indexOf('GraphQLList') >= 0) {
+        declarations.push(
+            b.variableDeclaration('var',
+                [b.variableDeclarator(
+                    b.identifier('getConnection'),
+                    b.memberExpression(
+                        b.identifier('resolveMap'),
+                        b.identifier('getConnection'),
+                        false
+                    )
+                )]
+            )
+        );
+    }
+
     return declarations;
 }
 
 function es6Import(graphql, others, opts) {
+    var resolveImports = [
+        importSpecifier('getType'),
+        importSpecifier('registerType')
+    ];
+
+    if (opts.relay && graphql.indexOf('GraphQLList') >= 0) {
+        resolveImports.push(importSpecifier('getConnection'));
+    }
+
     var declarations = [
         b.importDeclaration(
             [importSpecifier('getEntityResolver', true)],
             b.literal('../util/entity-resolver')
-        ),
-
-        b.importDeclaration(
-            [importSpecifier('getType'), importSpecifier('registerType')],
-            b.literal('../resolve-map')
         )
     ];
+
+    if (opts.relay && graphql.indexOf('GraphQLList') >= 0) {
+        declarations.push(
+            b.importDeclaration(
+                [importSpecifier('getConnectionResolver', true)],
+                b.literal('../util/connection-resolver')
+            )
+        );
+    }
+
+    declarations.push(
+        b.importDeclaration(
+            resolveImports,
+            b.literal('../resolve-map')
+        )
+    );
 
     declarations.push(b.importDeclaration(
         graphql.map(importSpecifier),
@@ -179,8 +242,16 @@ function es6Import(graphql, others, opts) {
     ));
 
     if (opts.relay) {
+        var relayStuff = ['globalIdField'];
+
+        if (graphql.indexOf('GraphQLList') >= 0) {
+            relayStuff.push('connectionArgs');
+        }
+
         declarations.push(b.importDeclaration(
-            [importSpecifier('globalIdField')],
+            relayStuff.map(function(thing) {
+                return importSpecifier(thing);
+            }),
             b.literal('graphql-relay')
         ));
 
