@@ -12,9 +12,19 @@ module.exports = function buildResolveMap(data, opts) {
 
     var program = []
         .concat(buildStrict(opts))
+        .concat(buildImports(opts))
         .concat(buildResolveMapExport(map, opts))
+        .concat(buildConnectionsVar(opts))
         .concat(buildExportedFunc(opts, getTypeRegisterAst(), 'registerType'))
         .concat(buildExportedFunc(opts, getTypeGetterAst(), 'getType'));
+
+    if (opts.relay) {
+        program = program.concat(buildExportedFunc(
+            opts,
+            getConnectionGetterAst(opts),
+            'getConnection'
+        ));
+    }
 
     return b.program(program);
 };
@@ -100,6 +110,63 @@ function buildExportedFunc(opts, ast, name) {
             func
         ))
     ];
+}
+
+function buildConnectionsVar(opts) {
+    if (!opts.relay) {
+        return [];
+    }
+
+    return [buildVariable('connections', b.objectExpression([]), opts.es6)];
+}
+
+function buildImports(opts) {
+    if (!opts.relay) {
+        return [];
+    }
+
+    if (opts.es6) {
+        return [
+            b.importDeclaration(
+                [importSpecifier('connectionDefinitions')],
+                b.literal('graphql-relay')
+            )
+        ];
+    }
+
+    return [
+        b.variableDeclaration('var',
+            [b.variableDeclarator(
+                b.identifier('GraphQLRelay'),
+                b.callExpression(
+                    b.identifier('require'),
+                    [b.literal('graphql-relay')]
+                )
+            )]
+        ),
+
+        b.variableDeclaration('var',
+            [b.variableDeclarator(
+                b.identifier('connectionDefinitions'),
+                b.memberExpression(
+                    b.identifier('GraphQLRelay'),
+                    b.identifier('connectionDefinitions'),
+                    false
+                )
+            )]
+        )
+    ];
+}
+
+function importSpecifier(name) {
+    return {
+        type: 'ImportSpecifier',
+        id: {
+            type: 'Identifier',
+            name: name
+        },
+        name: null
+    };
 }
 
 // Can't be bothered trying replicate this with the builder right now :x
@@ -336,4 +403,141 @@ function getTypeGetterAst() {
             }
         }
     }];
+}
+
+function getConnectionGetterAst(opts) {
+    return [
+        {
+            'type': 'IfStatement',
+            'test': {
+                'type': 'UnaryExpression',
+                'operator': '!',
+                'argument': {
+                    'type': 'MemberExpression',
+                    'computed': true,
+                    'object': {
+                        'type': 'Identifier',
+                        'name': 'connections'
+                    },
+                    'property': {
+                        'type': 'Identifier',
+                        'name': 'type'
+                    }
+                },
+                'prefix': true
+            },
+            'consequent': {
+                'type': 'BlockStatement',
+                'body': [
+                    {
+                        'type': 'ExpressionStatement',
+                        'expression': {
+                            'type': 'AssignmentExpression',
+                            'operator': '=',
+                            'left': {
+                                'type': 'MemberExpression',
+                                'computed': true,
+                                'object': {
+                                    'type': 'Identifier',
+                                    'name': 'connections'
+                                },
+                                'property': {
+                                    'type': 'Identifier',
+                                    'name': 'type'
+                                }
+                            },
+                            'right': {
+                                'type': 'MemberExpression',
+                                'computed': false,
+                                'object': {
+                                    'type': 'CallExpression',
+                                    'callee': {
+                                        'type': 'Identifier',
+                                        'name': 'connectionDefinitions'
+                                    },
+                                    'arguments': [
+                                        {
+                                            'type': 'ObjectExpression',
+                                            'properties': [
+                                                {
+                                                    'type': 'Property',
+                                                    'key': {
+                                                        'type': 'Identifier',
+                                                        'name': 'name'
+                                                    },
+                                                    'value': {
+                                                        'type': 'Identifier',
+                                                        'name': 'type'
+                                                    },
+                                                    'kind': 'init',
+                                                    'method': false,
+                                                    'shorthand': false,
+                                                    'computed': false
+                                                },
+                                                {
+                                                    'type': 'Property',
+                                                    'key': {
+                                                        'type': 'Identifier',
+                                                        'name': 'nodeType'
+                                                    },
+                                                    'value': {
+                                                        'type': 'CallExpression',
+                                                        'callee': opts.es6 ? {
+                                                            'type': 'Identifier',
+                                                            'name': 'getType'
+                                                        } : {
+                                                            'type': 'MemberExpression',
+                                                            'computed': false,
+                                                            'object': {
+                                                                'type': 'Identifier',
+                                                                'name': 'exports'
+                                                            },
+                                                            'property': {
+                                                                'type': 'Identifier',
+                                                                'name': 'getType'
+                                                            }
+                                                        },
+                                                        'arguments': [
+                                                            {
+                                                                'type': 'Identifier',
+                                                                'name': 'type'
+                                                            }
+                                                        ]
+                                                    },
+                                                    'kind': 'init',
+                                                    'method': false,
+                                                    'shorthand': false,
+                                                    'computed': false
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                'property': {
+                                    'type': 'Identifier',
+                                    'name': 'connectionType'
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            'alternate': null
+        },
+        {
+            'type': 'ReturnStatement',
+            'argument': {
+                'type': 'MemberExpression',
+                'computed': true,
+                'object': {
+                    'type': 'Identifier',
+                    'name': 'connections'
+                },
+                'property': {
+                    'type': 'Identifier',
+                    'name': 'type'
+                }
+            }
+        }
+    ];
 }

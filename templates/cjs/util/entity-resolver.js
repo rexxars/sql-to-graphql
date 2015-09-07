@@ -2,6 +2,8 @@
 
 var GraphQL = require('graphql');
 var resolveMap = require('../resolve-map').resolveMap;
+var getSelectionSet = require('./get-selection-set');
+var getUnaliasedName = require('./get-unaliased-name');
 var db = require('../db');
 var config = require('../config/config');
 
@@ -65,36 +67,6 @@ function getResolver(type) {
     };
 }
 
-function getSelectionSet(type, ast, aliases, referenceMap) {
-    return ast.selectionSet.selections.reduce(function reduceSelectionSet(set, selection) {
-        // If we encounter a selection with a type condition, make sure it's the correct type
-        if (selection.typeCondition && selection.typeCondition.name.value !== type) {
-            return set;
-        }
-
-        var alias, field;
-        if (selection.kind === 'Field' && selection.selectionSet && referenceMap) {
-            // For fields with its own selection set, we need to fetch the reference ID
-            alias = referenceMap[selection.name.value];
-            field = getUnaliasedName(alias, aliases);
-            if (field || alias) {
-                set.push(field || alias);
-            }
-            return set;
-        } else if (selection.kind === 'InlineFragment' && selection.selectionSet) {
-            // And for inline fragments, we need to recurse down and combine the set
-            return set.concat(getSelectionSet(type, selection, aliases, referenceMap));
-        } else if (selection.selectionSet) {
-            return set;
-        }
-
-        alias = selection.name.value;
-        field = getUnaliasedName(alias, aliases);
-        set.push(field ? field + ' AS ' + alias : alias);
-        return set;
-    }, []);
-}
-
 function getClauses(ast, args, aliases) {
     return Object.keys(args).reduce(function(query, alias) {
         if (alias === 'limit' || alias === 'offset') {
@@ -105,24 +77,6 @@ function getClauses(ast, args, aliases) {
         query[field || alias] = args[alias];
         return query;
     }, {});
-}
-
-function typecastValue(value) {
-    var val = value.value;
-    switch (value.kind) {
-        case 'IntValue':
-            return parseInt(val, 10);
-        default:
-            return val;
-    }
-}
-
-function getUnaliasedName(alias, aliases) {
-    for (var key in aliases) {
-        if (aliases[key] === alias) {
-            return key;
-        }
-    }
 }
 
 function getAliasSelection(field, alias) {
