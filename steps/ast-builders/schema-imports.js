@@ -3,7 +3,14 @@
 var b = require('ast-types').builders;
 var uniq = require('lodash/array/uniq');
 var flatten = require('lodash/array/flatten');
+var reduce = require('lodash/collection/reduce');
 var pluck = require('lodash/collection/pluck');
+var getPrimaryKey = require('../../util/get-primary-key');
+var typeMap = {
+    string: 'GraphQLString',
+    integer: 'GraphQLInt',
+    float: 'GraphQLFloat'
+};
 
 function generateSchemaImports(data, opts) {
     var imports = [];
@@ -22,12 +29,27 @@ function generateSchemaImports(data, opts) {
     ];
 
     if (!opts.relay) {
-        graphql.push('GraphQLInt', 'GraphQLNonNull');
+        graphql = graphql
+            .concat(['GraphQLNonNull'])
+            .concat(reduceGraphQLTypes(data.models));
     }
 
     return opts.es6 ?
         es6Import(graphql, types, opts) :
         cjsImport(graphql, types, opts);
+}
+
+function reduceGraphQLTypes(models) {
+    return reduce(models, function(types, model) {
+        var primaryKey = getPrimaryKey(model) || {};
+        var keyType = typeMap[primaryKey.type];
+
+        if (keyType && types.indexOf(keyType) === -1) {
+            types.push(keyType);
+        }
+
+        return types;
+    }, []);
 }
 
 function cjsImport(graphql, types, opts) {
