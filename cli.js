@@ -2,9 +2,10 @@
 'use strict';
 
 var path = require('path');
-var opts = require('./cli/args');
 var async = require('async');
+var opts = require('./cli/args');
 var prompts = require('./cli/prompts');
+var merge = require('lodash/object/merge');
 var partial = require('lodash/function/partial');
 var backends = require('./backends');
 var mapValues = require('lodash/object/mapValues');
@@ -22,33 +23,54 @@ var steps = {
     }
 };
 
-// Command vs requirements
-opts.command = (opts._ || [])[0];
-opts.user =
-    opts.backend !== 'mysql' &&
-    opts.user === 'root' ?
-        process.env.USER || 'root' :
-        opts.user;
-
 // Force recast to throw away whitespace information
 opts.reuseWhitespace = false;
 
-if (!opts.outputDir) {
+if (!opts.interactive && !opts.database) {
+    return bail(new Error('You need to specify a database (--database)'));
+}
+
+if (!opts.interactive && !opts.outputDir) {
     return bail(new Error('You need to provide an output directory (--output-dir=<path>) to generate an application'));
 }
 
-// Do we support the given backend?
-var backend = backends(opts.backend);
-if (!backend) {
-    return bail(new Error('Database backend "' + opts.backend + '" not supported'));
+if (opts.interactive) {
+    prompts.dbCredentials(opts, function(options) {
+        opts = merge({}, opts, options);
+
+        initOutputPath();
+    });
+} else {
+    initOutputPath();
 }
 
-// Instantiate the adapter for the given backend
-var adapter = backend(opts, function(err) {
-    bailOnError(err);
+function initOutputPath() {
+    if (opts.outputDir) {
+        return instantiate();
+    }
 
-    getTables();
-});
+    prompts.outputPath(function(outPath) {
+        opts.outputDir = outPath;
+
+        instantiate();
+    });
+}
+
+var adapter;
+function instantiate() {
+    // Do we support the given backend?
+    var backend = backends(opts.backend);
+    if (!backend) {
+        return bail(new Error('Database backend "' + opts.backend + '" not supported'));
+    }
+
+    // Instantiate the adapter for the given backend
+    adapter = backend(opts, function(err) {
+        bailOnError(err);
+
+        setTimeout(getTables, 1000);
+    });
+}
 
 function getTables() {
     // Collect a list of available tables
@@ -110,6 +132,10 @@ function onTableDataCollected(err, data) {
 function onDataOutput() {
     if (!opts.outputDir) {
         return;
+    }
+
+    if (opts.interactive) {
+        console.log('\n\n\n');
     }
 
     var dir = path.resolve(opts.outputDir);
