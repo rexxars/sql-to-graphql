@@ -11,6 +11,22 @@ module.exports = {
         }, cb);
     },
 
+    styleOptions: function(opts, cb) {
+        return inquirer.prompt([{
+            type: 'confirm',
+            message: 'Do you want to use babel + ES6?',
+            name: 'es6',
+            default: opts.es6
+        }, {
+            type: 'confirm',
+            name: 'relay',
+            message: 'Do you want a Relay-style GraphQL schema?',
+            default: opts.relay
+        }], function(answers) {
+            cb(merge({}, opts, answers));
+        });
+    },
+
     tableSelection: function(tables, cb) {
         prompt({
             type: 'checkbox',

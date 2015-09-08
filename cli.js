@@ -46,11 +46,19 @@ if (opts.interactive) {
 
 function initOutputPath() {
     if (opts.outputDir) {
-        return instantiate();
+        return initStyleOpts();
     }
 
     prompts.outputPath(function(outPath) {
         opts.outputDir = outPath;
+
+        initStyleOpts();
+    });
+}
+
+function initStyleOpts() {
+    prompts.styleOptions(opts, function(options) {
+        opts = options;
 
         instantiate();
     });
