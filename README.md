@@ -47,6 +47,14 @@ This utility is intended to help people get started with GraphQL. It is **NOT** 
   - `--unaliased-primary-keys`  Disable aliasing of primary key fields to "id" for each type *`(boolean [default: false])`*
   - `--help` - Show help *`(boolean)`*
 
+## A note about connections
+
+At the moment, sql-to-graphql tries to guess connections between tables based on naming conventions. This is far from fool-proof, but here's how it works:
+
+Given you have a table called `users` (or `user`) and a table called `posts` (or `post`) and the `posts` table have a column called `user_id`, it will create a connection called `user` on the `Post`-type, giving you the `User` this post belongs to. It will also create a connection on the `User`-type named `posts`, which will return all the posts belonging to this `User`.
+
+How these connections look depends on the options used (namely, `--relay`).
+
 ## License
 
 MIT-licensed. See LICENSE.
