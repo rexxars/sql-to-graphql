@@ -3,6 +3,10 @@
 var getUnaliasedName = require('./get-unaliased-name');
 
 module.exports = function getSelectionSet(type, ast, aliases, referenceMap) {
+    if (!ast || !ast.selectionSet) {
+        return [];
+    }
+
     return ast.selectionSet.selections.reduce(function reduceSelectionSet(set, selection) {
         // If we encounter a selection with a type condition, make sure it's the correct type
         if (selection.typeCondition && selection.typeCondition.name.value !== type) {

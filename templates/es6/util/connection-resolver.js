@@ -14,7 +14,7 @@ export default function getConnectionResolver(type) {
         const parentTypeData = resolveMap[ast.parentType.name];
         const listRefField = parentTypeData.listReferences[ast.fieldName];
         const parentPk = parentTypeData.aliases[parentTypeData.primaryKey] || parentTypeData.primaryKey;
-        const edgeSelection = ast.fieldASTs[0].selectionSet.selections.reduce(edgeReducer);
+        const edgeSelection = ast.fieldASTs[0].selectionSet.selections.reduce(edgeReducer, null);
         const selection = getSelectionSet(type, edgeSelection, typeData.aliases, typeData.referenceMap);
         const clauses = { [listRefField]: parent[parentPk] };
 
