@@ -30,4 +30,4 @@ module.exports = function getSelectionSet(type, ast, aliases, referenceMap) {
         set.push(field ? field + ' AS ' + alias : alias);
         return set;
     }, []);
-}
+};

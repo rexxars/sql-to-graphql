@@ -5,7 +5,7 @@ var db;
 
 export default function getDb() {
     return db || getDb.reconnect();
-};
+}
 
 getDb.reconnect = function() {
     db = knex(config);

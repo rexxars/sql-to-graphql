@@ -15,7 +15,7 @@ export default function graphqlHandler(request, reply) {
 
         return reply(result);
     });
-};
+}
 
 function reduceErrors(errs, err) {
     // Hacky, but knex sucks at errors and graphql swallows errors.

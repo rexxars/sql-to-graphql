@@ -169,6 +169,8 @@ function importSpecifier(name) {
     };
 }
 
+/* eslint quote-props: 0 */
+
 // Can't be bothered trying replicate this with the builder right now :x
 // On a totally unrelated side-note, someone should make a thing that takes
 // AST and generates code that can build it with the `ast-types` builder

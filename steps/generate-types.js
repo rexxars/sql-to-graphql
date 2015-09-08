@@ -10,11 +10,11 @@ var buildResolver = require('./ast-builders/resolver');
 var buildFieldWrapperFunction = require('./ast-builders/field-wrapper-function');
 
 var typeMap = {
-    'id': 'GraphQLID',
-    'string': 'GraphQLString',
-    'integer': 'GraphQLInt',
-    'float': 'GraphQLFloat',
-    'boolean': 'GraphQLBoolean'
+    id: 'GraphQLID',
+    string: 'GraphQLString',
+    integer: 'GraphQLInt',
+    float: 'GraphQLFloat',
+    boolean: 'GraphQLBoolean'
 };
 
 function exclude(arr, val) {

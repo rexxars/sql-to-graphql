@@ -66,7 +66,7 @@ var App = React.createClass({
     render: function() {
         return (
             <div>
-                <h1>GraphQL playground</h1>
+                <h1>sql-to-graphql playground</h1>
 
                 <div className="pure-g">
                     <div className="pure-u-3-5">

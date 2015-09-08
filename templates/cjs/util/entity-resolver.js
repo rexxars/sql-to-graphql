@@ -87,5 +87,4 @@ function getAliasSelection(field, alias) {
     return field;
 }
 
-
 module.exports = getResolver;

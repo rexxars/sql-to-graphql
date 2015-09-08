@@ -1,3 +1,4 @@
+/* eslint camelcase: 0 */
 'use strict';
 
 var knex = require('knex');
@@ -32,8 +33,8 @@ module.exports = function postgresBackend(opts, cb) {
             pg('information_schema.tables')
                 .distinct('table_name')
                 .where({
-                    'table_catalog': opts.db,
-                    'table_type': 'BASE TABLE'
+                    table_catalog: opts.db,
+                    table_type: 'BASE TABLE'
                 })
                 .whereNotIn('table_schema', pgSchemas)
                 .then(function(tbls) {
@@ -61,8 +62,8 @@ module.exports = function postgresBackend(opts, cb) {
             pg.select('table_name', 'column_name', 'ordinal_position', 'is_nullable', 'data_type', 'udt_name')
                 .from('information_schema.columns AS c')
                 .where({
-                    'table_catalog': opts.db,
-                    'table_name': tableName
+                    table_catalog: opts.db,
+                    table_name: tableName
                 })
                 .whereNotIn('table_schema', pgSchemas)
                 .orderBy('ordinal_position', 'asc')
@@ -80,18 +81,18 @@ module.exports = function postgresBackend(opts, cb) {
                         var subQuery = pg.select('constraint_name')
                             .from('information_schema.table_constraints')
                             .where({
-                                'table_catalog': opts.db,
-                                'table_name': tableName,
-                                'constraint_type': 'PRIMARY KEY'
+                                table_catalog: opts.db,
+                                table_name: tableName,
+                                constraint_type: 'PRIMARY KEY'
                             })
                             .whereNotIn('table_schema', pgSchemas);
 
                         pg.first('column_name AS primary_key')
                             .from('information_schema.key_column_usage')
                             .where({
-                                'table_catalog': opts.db,
-                                'table_name': tableName,
-                                'constraint_name': subQuery
+                                table_catalog: opts.db,
+                                table_name: tableName,
+                                constraint_name: subQuery
                             })
                             .whereNotIn('table_schema', pgSchemas)
                             .then(function(pk) {

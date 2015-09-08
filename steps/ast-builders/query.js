@@ -4,9 +4,9 @@ var b = require('ast-types').builders;
 var buildResolver = require('./resolver');
 var getPrimaryKey = require('../../util/get-primary-key');
 var typeMap = {
-    'string': 'GraphQLString',
-    'integer': 'GraphQLInt',
-    'float': 'GraphQLFloat'
+    string: 'GraphQLString',
+    integer: 'GraphQLInt',
+    float: 'GraphQLFloat'
 };
 
 module.exports = function buildQuery(type, data, opts) {
@@ -32,5 +32,3 @@ module.exports = function buildQuery(type, data, opts) {
         buildResolver(type)
     )] : []));
 };
-
-

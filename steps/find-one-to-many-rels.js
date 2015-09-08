@@ -35,7 +35,6 @@ function findRelationships(adapter, model, models, callback) {
                 return done(null, model);
             }
 
-
             var reverseRefs = ref.model.listReferences;
             var refName = camelCase(pluralize(model.name));
             var description = pluralize(model.name) + ' belonging to this ' + ref.model.name;

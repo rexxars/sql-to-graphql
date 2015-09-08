@@ -96,20 +96,17 @@ function cursorToOffset(cursor) {
     return parseInt(new Buffer(cursor, 'base64').toString('ascii').substring(PREFIX.length), 10);
 }
 
-
-/**
- * Given an optional cursor and a default offset, returns the offset
- * to use; if the cursor contains a valid offset, that will be used,
- * otherwise it will be the default.
- */
+// Given an optional cursor and a default offset, returns the offset
+// to use; if the cursor contains a valid offset, that will be used,
+// otherwise it will be the default.
 function getOffset(cursor, defaultOffset) {
-    if (cursor === undefined || cursor === null) {
+    if (typeof cursor === 'undefined' || cursor === null) {
         return defaultOffset;
     }
 
     let offset = cursorToOffset(cursor);
     if (isNaN(offset)) {
-       return defaultOffset;
+        return defaultOffset;
     }
 
     return offset;
