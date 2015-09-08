@@ -1,6 +1,6 @@
 {
   "name": "sql-to-graphql",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Generate GraphQL schemas and/or server based on SQL table structure",
   "main": "index.js",
   "scripts": {
