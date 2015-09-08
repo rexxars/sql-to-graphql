@@ -2,12 +2,14 @@
 
 var find = require('lodash/collection/find');
 var where = require('lodash/collection/where');
+var pluck = require('lodash/collection/pluck');
 var capitalize = require('lodash/string/capitalize');
 var snakeCase = require('lodash/string/snakeCase');
 var b = require('ast-types').builders;
 var buildVar = require('./ast-builders/variable');
 var buildResolver = require('./ast-builders/resolver');
 var buildFieldWrapperFunction = require('./ast-builders/field-wrapper-function');
+var enumRegex = /^[_a-zA-Z][_a-zA-Z0-9]*$/;
 
 var typeMap = {
     id: 'GraphQLID',
@@ -205,12 +207,28 @@ function generateTypes(data, opts) {
     }
 
     function getEnum(field, model) {
-        var values = [], enumValue;
-        for (var name in field.values) {
-            enumValue = field.values[name];
+        var values = [], enumKey, enumValue;
+
+        var fieldValues = field.values;
+        var numVals = pluck(fieldValues, 'value').map(Number);
+        if (numVals.length === 2 && numVals.indexOf(0) > -1 && numVals.indexOf(1) > -1) {
+            fieldValues = {
+                TRUE: { value: '1' },
+                FALSE: { value: '0' }
+            };
+        }
+
+        for (var name in fieldValues) {
+            enumValue = fieldValues[name];
+            enumKey = snakeCase(name).toUpperCase();
+
+            if (!enumKey.match(enumRegex)) {
+                enumKey = 'ENUM_' + enumKey;
+            }
+
             values.push(b.property(
                 'init',
-                b.literal(snakeCase(name).toUpperCase()),
+                b.literal(enumKey),
                 b.objectExpression([
                     b.property('init', b.identifier('value'), b.literal(enumValue.value)),
                     generateDescription(enumValue.description)
