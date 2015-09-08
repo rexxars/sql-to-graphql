@@ -57,6 +57,10 @@ function initOutputPath() {
 }
 
 function initStyleOpts() {
+    if (!opts.interactive) {
+        return instantiate();
+    }
+
     prompts.styleOptions(opts, function(options) {
         opts = options;
 
