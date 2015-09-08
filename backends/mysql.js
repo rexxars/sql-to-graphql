@@ -1,3 +1,4 @@
+/* eslint camelcase: 0 */
 'use strict';
 
 var knex = require('knex');
@@ -20,9 +21,10 @@ module.exports = function mysqlBackend(opts, callback) {
             var matchAll = tableNames.length === 1 && tableNames[0] === '*';
 
             mysql
-                .distinct('table_name')
-                .from('information_schema.columns')
-                .where('table_schema', opts.db)
+                .select('table_name')
+                .from('information_schema.tables')
+                .where('table_schema', opts.database)
+                .where('table_type', 'BASE TABLE')
                 .catch(cb)
                 .then(function(tbls) {
                     tbls = pluck(tbls, 'table_name');
@@ -42,8 +44,8 @@ module.exports = function mysqlBackend(opts, callback) {
                 .first('table_comment AS comment')
                 .from('information_schema.tables')
                 .where({
-                    'table_schema': opts.db,
-                    'table_name': tableName
+                    table_schema: opts.database,
+                    table_name: tableName
                 })
                 .catch(cb)
                 .then(function(info) {
@@ -65,8 +67,8 @@ module.exports = function mysqlBackend(opts, callback) {
                 ])
                 .from('information_schema.columns')
                 .where({
-                    'table_schema': opts.db,
-                    'table_name': tableName
+                    table_schema: opts.database,
+                    table_name: tableName
                 })
                 .orderBy('ordinal_position', 'asc')
                 .catch(cb)
