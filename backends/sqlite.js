@@ -4,9 +4,7 @@
 var knex = require('knex');
 var knexString = require('knex/src/query/string') 
 var pluck = require('lodash/collection/pluck');
-var mapKeys = require('lodash/object/mapKeys');
 var contains = require('lodash/collection/includes');
-var camelCase = require('lodash/string/camelCase');
 var undef;
 
 module.exports = function sqliteBackend(opts, callback) {
@@ -49,7 +47,6 @@ module.exports = function sqliteBackend(opts, callback) {
                          + ".table_info("
                          + knexString.escape(tableName)
                          + ");"
-
             sqlite
                 .raw(rawSql)
                 .catch(cb)
@@ -84,9 +81,3 @@ module.exports = function sqliteBackend(opts, callback) {
         }
     };
 };
-
-function camelCaseKeys(obj) {
-    return mapKeys(obj, function(val, key) {
-        return camelCase(key);
-    });
-}
