@@ -26,6 +26,14 @@ var steps = {
 // Force recast to throw away whitespace information
 opts.reuseWhitespace = false;
 
+if (opts.backend === 'sqlite' && !opts.database) {
+    opts.database = 'main';
+}
+
+if (opts.backend === 'sqlite' && !opts.filename) {
+    return bail(new Error('You need to specify a filename (--filename) when using the \'sqlite\' backend'));
+}
+
 if (!opts.interactive && !opts.database) {
     return bail(new Error('You need to specify a database (--database)'));
 }
