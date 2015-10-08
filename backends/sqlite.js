@@ -21,14 +21,14 @@ module.exports = function sqliteBackend(opts, callback) {
         getTables: function(tableNames, cb) {
             var matchAll = tableNames.length === 1 && tableNames[0] === '*';
             sqlite
-                .select("name")
-                .from("sqlite_master")
-                .whereIn("type", ["table", "views"])
-                .andWhere("name", "not like", "sqlite_%")
+                .select('name')
+                .from('sqlite_master')
+                .whereIn('type', ['table', 'views'])
+                .andWhere('name', 'not like', 'sqlite_%')
                 .orderBy('id', 'asc')
                 .catch(cb)
                 .then(function(tbls) {
-                    tbls = pluck(tbls, "name");
+                    tbls = pluck(tbls, 'name');
                     if (!matchAll) {
                         tbls = tbls.filter(function(tbl) {
                             return contains(tableNames, tbl);
@@ -39,16 +39,16 @@ module.exports = function sqliteBackend(opts, callback) {
         },
 
         getTableComment: function(tableName, cb) {
-            cb(null, "")
+            cb(null, '')
         },
 
         getTableStructure: function(tableName, cb) {
-            var dbName = opts.database || "main"
-            var rawSql = "pragma "
+            var dbName = opts.database || 'main'
+            var rawSql = 'pragma '
                          + knexString.escape(dbName)
-                         + ".table_info("
+                         + '.table_info('
                          + knexString.escape(tableName)
-                         + ");"
+                         + ');'
             sqlite
                 .raw(rawSql)
                 .catch(cb)
