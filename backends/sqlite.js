@@ -10,7 +10,9 @@ var undef;
 module.exports = function sqliteBackend(opts, callback) {
     var sqlite = knex({
         client: 'sqlite',
-        connection: opts
+        connection: {
+            filename: opts.dbFilename
+        }
     });
 
     process.nextTick(callback);

@@ -30,8 +30,8 @@ if (opts.backend === 'sqlite' && !opts.database) {
     opts.database = 'main';
 }
 
-if (opts.backend === 'sqlite' && !opts.filename) {
-    return bail(new Error('You need to specify a filename (--filename) when using the \'sqlite\' backend'));
+if (opts.backend === 'sqlite' && !opts.dbFilename) {
+    return bail(new Error('You need to specify a database filename (--db-filename) when using the \'sqlite\' backend'));
 }
 
 if (!opts.interactive && !opts.database) {
