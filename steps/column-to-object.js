@@ -84,6 +84,7 @@ function getType(col) {
         case 'text':
         case 'uuid':
         case 'varchar':
+        case 'nvarchar':
         case 'tinytext':
         case 'longtext':
         case 'character':
