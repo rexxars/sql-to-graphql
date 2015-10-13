@@ -54,11 +54,15 @@ module.exports = function sqliteBackend(opts, callback) {
                 .catch(cb)
                 .then(function(info) {
                     var structure = info.map(function(col) {
+                        var parensAndContents = /\(.+\)/;
+                        var sanitizedType = col.type
+                                               .toLowerCase()
+                                               .replace(parensAndContents, '');
                         return {
                             columnName: col.name,
                             isNullable: col.notnull !== 1,
                             columnKey: col.pk === 1 ? 'PRI' : null,
-                            dataType: col.type
+                            dataType: sanitizedType
                         };
                     });
                     cb(null, structure);
