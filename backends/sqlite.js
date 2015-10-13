@@ -2,10 +2,9 @@
 'use strict';
 
 var knex = require('knex');
-var knexString = require('knex/src/query/string') 
+var knexString = require('knex/src/query/string');
 var pluck = require('lodash/collection/pluck');
 var contains = require('lodash/collection/includes');
-var undef;
 
 module.exports = function sqliteBackend(opts, callback) {
     var sqlite = knex({
@@ -39,16 +38,16 @@ module.exports = function sqliteBackend(opts, callback) {
         },
 
         getTableComment: function(tableName, cb) {
-            cb(null, '')
+            cb(null, '');
         },
 
         getTableStructure: function(tableName, cb) {
-            var dbName = opts.database || 'main'
+            var dbName = opts.database || 'main';
             var rawSql = 'pragma '
                          + knexString.escape(dbName)
                          + '.table_info('
                          + knexString.escape(tableName)
-                         + ');'
+                         + ');';
             sqlite
                 .raw(rawSql)
                 .catch(cb)
