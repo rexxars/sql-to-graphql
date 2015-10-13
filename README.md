@@ -30,6 +30,7 @@ This utility is intended to help people get started with GraphQL. It is **NOT** 
   - `--output-dir`, `-o` - Directory to use when generating app *`(string [required])`*
   - `--es6` - Use ES6 for generated code *`(boolean [default: false])`*
   - `--database`, `--db` - Database name *`(string [required])`*
+  - `--db-filename` - Database filename, used for SQLite *`(string)`*
   - `--host`, `-h` - Hostname of database server *`(string [default: "localhost"])`*
   - `--port`, `-P` - Port number of database server *`(number)`*
   - `--user`, `-u` - Username to use when connecting *`(string [default: "root"])`*
