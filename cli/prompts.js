@@ -59,6 +59,15 @@ module.exports = {
             });
         }
 
+        if (!opts.host || opts.host === 'localhost') {
+            prompts.push({
+                message: 'What is the hostname of your database server?',
+                name: 'host',
+                validate: Boolean,
+                default: 'localhost'
+            });
+        }
+
         if (!opts.database) {
             prompts.push({
                 message: 'What is the name of the database?',
