@@ -8,7 +8,6 @@ module.exports = require('yargs')
         type: 'string'
     })
     .option('db-filename', {
-        alias: 'dbf',
         describe: 'full path to the sqlite db file',
         type: 'string'
     })
