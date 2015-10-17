@@ -1,6 +1,6 @@
 {
   "name": "sql-to-graphql",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "Generate a GraphQL API based on your SQL database structure",
   "main": "index.js",
   "scripts": {
