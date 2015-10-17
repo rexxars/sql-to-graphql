@@ -110,6 +110,19 @@ module.exports = function postgresBackend(opts, cb) {
                 });
         },
 
+        hasDuplicateValues: function(table, column, callback) {
+            pg
+                .count(column + ' as hasSameValues')
+                .from(table)
+                .groupBy(column)
+                .having('hasSameValues', '>', 1)
+                .limit(1)
+                .catch(callback)
+                .then(function(info) {
+                    callback(null, (info || []).length > 0);
+                });
+        },
+
         close: function(tblCb) {
             pg.destroy(tblCb);
         }
