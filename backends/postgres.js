@@ -112,10 +112,10 @@ module.exports = function postgresBackend(opts, cb) {
 
         hasDuplicateValues: function(table, column, callback) {
             pg
-                .count(column + ' as hasSameValues')
+                .select(column)
                 .from(table)
                 .groupBy(column)
-                .having('hasSameValues', '>', 1)
+                .havingRaw(`count(${column}) > 1`)
                 .limit(1)
                 .catch(callback)
                 .then(function(info) {
