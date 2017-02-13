@@ -115,7 +115,7 @@ module.exports = function postgresBackend(opts, cb) {
                 .select(column)
                 .from(table)
                 .groupBy(column)
-                .havingRaw(`count(${column}) > 1`)
+                .havingRaw('count(' + column + ') > 1')
                 .limit(1)
                 .catch(callback)
                 .then(function(info) {

@@ -56,7 +56,8 @@ function getType(col) {
         case 'time':
         case 'date':
         case 'datetime':
-        case 'timestamp with time zone': // pg
+        // pg
+        case 'timestamp with time zone':
 
         // Buffers represented as strings
         case 'bit':
@@ -90,8 +91,9 @@ function getType(col) {
         case 'longtext':
         case 'character':
         case 'mediumtext':
-        case 'character varying': // pg
-        case 'jsonb': // pg
+        // pg
+        case 'character varying':
+        case 'jsonb':
             return { type: 'string' };
 
         // Integers
