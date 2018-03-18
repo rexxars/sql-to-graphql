@@ -9,6 +9,7 @@ var getPrimaryKey = require('../../util/get-primary-key');
 var typeMap = {
     string: 'GraphQLString',
     integer: 'GraphQLInt',
+    list: 'GraphQLList',
     float: 'GraphQLFloat'
 };
 
