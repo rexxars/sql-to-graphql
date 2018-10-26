@@ -39,14 +39,16 @@
     "copy-dir": "0.0.8",
     "graphql": "^0.2.5",
     "inquirer": "^0.9.0",
-    "knex": "^0.8.6",
+    "knex": "^0.15.2",
     "lodash": "^3.10.0",
     "mkdirp": "^0.5.1",
     "mysql": "^2.8.0",
     "pg": "^4.4.1",
     "pluralize": "^1.1.2",
     "recast": "^0.10.26",
-    "sqlite3": "^3.1.0",
+    "sqlite3": "^4.0.0",
+    "mssql": "4.1.0",
+    "tedious": "^2.6.4",
     "yargs": "^3.15.0"
   },
   "devDependencies": {

@@ -2,7 +2,6 @@
 'use strict';
 
 var knex = require('knex');
-var knexString = require('knex/src/query/string');
 var pluck = require('lodash/collection/pluck');
 var contains = require('lodash/collection/includes');
 
@@ -24,7 +23,7 @@ module.exports = function sqliteBackend(opts, callback) {
                 .from('sqlite_master')
                 .whereIn('type', ['table', 'views'])
                 .andWhere('name', 'not like', 'sqlite_%')
-                .orderBy('id', 'asc')
+                .orderBy('name', 'asc')
                 .catch(cb)
                 .then(function(tbls) {
                     tbls = pluck(tbls, 'name');
@@ -44,9 +43,9 @@ module.exports = function sqliteBackend(opts, callback) {
         getTableStructure: function(tableName, cb) {
             var dbName = opts.database || 'main';
             var rawSql = 'pragma '
-                         + knexString.escape(dbName)
+                         + escape(dbName)
                          + '.table_info('
-                         + knexString.escape(tableName)
+                         + escape(tableName)
                          + ');';
             sqlite
                 .raw(rawSql)
@@ -85,4 +84,20 @@ module.exports = function sqliteBackend(opts, callback) {
             sqlite.destroy(cb);
         }
     };
+};
+
+function escape (str) {
+
+  str = str.replace(/[\0\n\r\b\t\\\'\"\x1a]/g, function(s) {
+    switch(s) {
+      case "\0": return "\\0";
+      case "\n": return "\\n";
+      case "\r": return "\\r";
+      case "\b": return "\\b";
+      case "\t": return "\\t";
+      case "\x1a": return "\\Z";
+      default: return "\\"+s;
+    }
+  });
+  return "'"+str+"'";
 };

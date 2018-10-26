@@ -128,7 +128,9 @@ function getType(col) {
                 values: getEnumValueMap(col)
             };
         default:
-            console.log(col);
+            console.log(col.dataType);
+        //TODO Add missing mssql types
+            return { type: 'string' };
             throw new Error('Type "' + col.dataType + '" not recognized');
     }
 }
