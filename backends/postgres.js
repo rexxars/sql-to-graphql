@@ -2,11 +2,11 @@
 'use strict';
 
 var knex = require('knex');
-var uniq = require('lodash/array/uniq');
-var pluck = require('lodash/collection/pluck');
-var mapKeys = require('lodash/object/mapKeys');
-var contains = require('lodash/collection/includes');
-var camelCase = require('lodash/string/camelCase');
+var uniq = require('lodash/uniq');
+var pluck = require('lodash/map');
+var mapKeys = require('lodash/mapKeys');
+var contains = require('lodash/includes');
+var camelCase = require('lodash/camelCase');
 var undef;
 
 module.exports = function postgresBackend(opts, cb) {

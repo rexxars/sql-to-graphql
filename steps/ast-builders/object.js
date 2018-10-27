@@ -1,7 +1,7 @@
 'use strict';
 
 var b = require('ast-types').builders;
-var isPlainObject = require('lodash/lang/isPlainObject');
+var isPlainObject = require('lodash/isPlainObject');
 
 function buildObject(obj) {
     var fields = [], key;

@@ -2,7 +2,7 @@
 
 var b = require('ast-types').builders;
 var buildStrict = require('./use-strict');
-var pluck = require('lodash/collection/pluck');
+var pluck = require('lodash/map');
 var buildExports = require('./exports');
 
 module.exports = function buildTypeIndex(data, opts) {

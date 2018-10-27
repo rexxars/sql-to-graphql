@@ -1,6 +1,6 @@
 'use strict';
 
-var diff = require('lodash/array/difference');
+var diff = require('lodash/difference');
 
 // Get available tables/verify specified tables
 module.exports = function getTableList(adapter, opts, cb) {

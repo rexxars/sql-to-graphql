@@ -1,10 +1,10 @@
 'use strict';
 
-var find = require('lodash/collection/find');
-var where = require('lodash/collection/where');
-var pluck = require('lodash/collection/pluck');
-var capitalize = require('lodash/string/capitalize');
-var snakeCase = require('lodash/string/snakeCase');
+var find = require('lodash/find');
+var where = require('lodash/filter');
+var pluck = require('lodash/map');
+var capitalize = require('lodash/capitalize');
+var snakeCase = require('lodash/snakeCase');
 var b = require('ast-types').builders;
 var buildVar = require('./ast-builders/variable');
 var buildResolver = require('./ast-builders/resolver');

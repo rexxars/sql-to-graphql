@@ -1,10 +1,10 @@
 'use strict';
 
 var b = require('ast-types').builders;
-var uniq = require('lodash/array/uniq');
-var flatten = require('lodash/array/flatten');
-var reduce = require('lodash/collection/reduce');
-var pluck = require('lodash/collection/pluck');
+var uniq = require('lodash/uniq');
+var flatten = require('lodash/flatten');
+var reduce = require('lodash/reduce');
+var pluck = require('lodash/map');
 var getPrimaryKey = require('../../util/get-primary-key');
 var typeMap = {
     string: 'GraphQLString',

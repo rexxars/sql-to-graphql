@@ -2,7 +2,7 @@
 
 var fs = require('fs');
 var path = require('path');
-var merge = require('lodash/object/merge');
+var merge = require('lodash/merge');
 var recast = require('recast');
 var mkdirp = require('mkdirp');
 var buildType = require('./ast-builders/type');

@@ -1,10 +1,10 @@
 'use strict';
 
 var async = require('async');
-var after = require('lodash/function/after');
-var find = require('lodash/collection/find');
-var camelCase = require('lodash/string/camelCase');
-var capitalize = require('lodash/string/capitalize');
+var after = require('lodash/after');
+var find = require('lodash/find');
+var camelCase = require('lodash/camelCase');
+var capitalize = require('lodash/capitalize');
 var pluralize = require('pluralize');
 
 module.exports = function findOneToManyRelationships(adapter, models, callback) {

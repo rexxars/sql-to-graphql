@@ -5,10 +5,10 @@ var path = require('path');
 var async = require('async');
 var opts = require('./cli/args');
 var prompts = require('./cli/prompts');
-var merge = require('lodash/object/merge');
-var partial = require('lodash/function/partial');
+var merge = require('lodash/merge');
+var partial = require('lodash/partial');
 var backends = require('./backends');
-var mapValues = require('lodash/object/mapValues');
+var mapValues = require('lodash/mapValues');
 var steps = {
     getTables: require('./steps/table-list'),
     tableToObject: require('./steps/table-to-object'),

@@ -1,7 +1,7 @@
 'use strict';
 
 var b = require('ast-types').builders;
-var reduce = require('lodash/collection/reduce');
+var reduce = require('lodash/reduce');
 var buildObject = require('./object');
 var buildStrict = require('./use-strict');
 var buildVariable = require('./variable');

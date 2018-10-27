@@ -1,7 +1,7 @@
 'use strict';
 
-var camelCase = require('lodash/string/camelCase');
-var map = require('lodash/collection/map');
+var camelCase = require('lodash/camelCase');
+var map = require('lodash/map');
 var b = require('ast-types').builders;
 var buildVar = require('./variable');
 var buildQuery = require('./query');

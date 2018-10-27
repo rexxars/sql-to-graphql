@@ -2,10 +2,10 @@
 'use strict';
 
 var knex = require('knex');
-var mapKeys = require('lodash/object/mapKeys');
-var contains = require('lodash/collection/includes');
-var camelCase = require('lodash/string/camelCase');
-var pluck = require('lodash/collection/pluck');
+var mapKeys = require('lodash/mapKeys');
+var contains = require('lodash/includes');
+var camelCase = require('lodash/camelCase');
+var pluck = require('lodash/map');
 var undef;
 
 module.exports = function mssqlBackend(opts, callback) {

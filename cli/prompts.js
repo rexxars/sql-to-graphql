@@ -1,7 +1,7 @@
 'use strict';
 
 var inquirer = require('inquirer');
-var merge = require('lodash/object/merge');
+var merge = require('lodash/merge');
 
 module.exports = {
     outputPath: function(cb) {

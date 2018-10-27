@@ -2,8 +2,8 @@
 'use strict';
 
 var knex = require('knex');
-var pluck = require('lodash/collection/pluck');
-var contains = require('lodash/collection/includes');
+var pluck = require('lodash/map');
+var contains = require('lodash/includes');
 
 module.exports = function sqliteBackend(opts, callback) {
     var sqlite = knex({

@@ -1,9 +1,9 @@
 'use strict';
 
-var merge = require('lodash/object/merge');
-var indexBy = require('lodash/collection/indexBy');
-var camelCase = require('lodash/string/camelCase');
-var capitalize = require('lodash/string/capitalize');
+var merge = require('lodash/merge');
+var indexBy = require('lodash/keyBy');
+var camelCase = require('lodash/camelCase');
+var capitalize = require('lodash/capitalize');
 var generics = ['type'], undef;
 
 function columnToObject(col, opts) {

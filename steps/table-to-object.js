@@ -1,9 +1,9 @@
 'use strict';
 
 var pluralize = require('pluralize');
-var camelCase = require('lodash/string/camelCase');
-var capitalize = require('lodash/string/capitalize');
-var indexBy = require('lodash/collection/indexBy');
+var camelCase = require('lodash/camelCase');
+var capitalize = require('lodash/capitalize');
+var indexBy = require('lodash/keyBy');
 var columnToObject = require('./column-to-object');
 
 function tableToObject(table, opts) {
