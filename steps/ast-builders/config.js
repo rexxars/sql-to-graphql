@@ -14,6 +14,7 @@ module.exports = function buildConfig(opts) {
 };
 
 function getConfigAst(opts) {
+
     return b.objectExpression([
         b.property('init', b.identifier('client'), b.literal(opts.backend)),
         b.property('init', b.identifier('connection'), buildObject(

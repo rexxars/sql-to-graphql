@@ -12,7 +12,7 @@ var buildResolveMap = require('./ast-builders/resolve-map');
 var buildSchemaModule = require('./ast-builders/schema-module');
 var buildNodeDefinitions = require('./ast-builders/node-definitions');
 var updatePackageManifest = require('./update-package');
-var copyTemplates = require('./copy-templates');
+var copyServer = require('./copy-server');
 
 function outputData(data, opts, callback) {
     if (opts.relay) {
@@ -64,8 +64,8 @@ function outputData(data, opts, callback) {
         var resolveMap = recast.prettyPrint(buildResolveMap(data, opts), opts).code;
         fs.writeFileSync(path.join(outputDir, 'resolve-map.js'), resolveMap);
 
-        // Copy templates ("static" ones, should probably be named something else)
-        copyTemplates(opts.es6 ? 'es6' : 'cjs', outputDir);
+        // Copy server files
+        copyServer( outputDir);
 
         // Write the schema!
         var schemaCode = recast.prettyPrint(buildSchemaModule(data, opts), opts).code;

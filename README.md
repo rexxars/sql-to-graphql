@@ -9,8 +9,8 @@ Generate GraphQL schemas and server based on SQL table structure.
 `sql-to-graphql` is a command-line utility that can help you get started. You give it the credentials to an SQL database (MySQL, PostgreSQL and SQLite currently) and it will inspect the tables it finds and do the following:
 
 - Generate GraphQL-types for each table (including resolvers)
-- Generate an HTTP-server based on Hapi that accepts GraphQL queries
-- Sets up a basic web-frontend that lets you query the server
+- Generate an HTTP-server based on Express that accepts GraphQL queries
+- Exposes a graphiql playground to query the server
 
 ## Disclaimer
 
@@ -28,7 +28,6 @@ This utility is intended to help people get started with GraphQL. It is **NOT** 
   
   - `--relay`, `-r` - Generate Relay-style schema *`(boolean [default: false])`*
   - `--output-dir`, `-o` - Directory to use when generating app *`(string [required])`*
-  - `--es6` - Use ES6 for generated code *`(boolean [default: false])`*
   - `--database`, `--db` - Database name *`(string [required])`*
   - `--db-filename` - Database filename, used for SQLite *`(string)`*
   - `--host`, `-h` - Hostname of database server *`(string [default: "localhost"])`*
