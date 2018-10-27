@@ -15,10 +15,10 @@ function getResolver(type) {
     }
 
     var pkAlias = typeData.primaryKey ? typeData.aliases[typeData.primaryKey] : null;
-    return function resolveEntity(parent, args, ast) {
-        var isList = ast.returnType instanceof GraphQL.GraphQLList;
-        var clauses = getClauses(ast, args, typeData.aliases);
-        var selection = getSelectionSet(type, ast.fieldASTs[0], typeData.aliases, typeData.referenceMap);
+    return function resolveEntity(parent, args, contextValue, info) {
+        var isList = info.returnType instanceof GraphQL.GraphQLList;
+        var clauses = getClauses(args, typeData.aliases);
+        var selection = getSelectionSet(type, info.fieldNodes[0], typeData.aliases, typeData.referenceMap);
         var hasPkSelected =
             typeData.primaryKey &&
             selection.some(function(item) {
@@ -30,9 +30,9 @@ function getResolver(type) {
         }
 
         if (parent) {
-            var parentTypeData = resolveMap[ast.parentType.name];
-            var refField = parentTypeData.referenceMap[ast.fieldName];
-            var listRefField = parentTypeData.listReferences[ast.fieldName];
+            var parentTypeData = resolveMap[info.parentType.name];
+            var refField = parentTypeData.referenceMap[info.fieldName];
+            var listRefField = parentTypeData.listReferences[info.fieldName];
 
             if (refField) {
                 var unliasedRef = getUnaliasedName(refField, parentTypeData.aliases);
@@ -43,18 +43,16 @@ function getResolver(type) {
             }
         }
 
-        var query = (
-            isList ? db().select(selection) : db().first(selection)
-        ).from(typeData.table).where(clauses).limit(25);
-
-        if (isList) {
-            query.limit(args.limit || 25).offset(args.offset || 0);
-        }
-
-        if (config.debug) {
-            console.log(query.toSQL());
-        }
-
+        var query = (isList
+            ? db()
+                .select(selection)
+                .limit(args.limit || 25)
+                .offset(args.offset || 0)
+            : db().first(selection)
+          )
+            .from(typeData.table)
+            .where(clauses)
+            
         // @TODO Find a much less hacky and error prone to handle this
         // Ties together with the Node type in Relay!
         return query.then(function(result) {
@@ -67,7 +65,7 @@ function getResolver(type) {
     };
 }
 
-function getClauses(ast, args, aliases) {
+function getClauses(args, aliases) {
     return Object.keys(args).reduce(function(query, alias) {
         if (alias === 'limit' || alias === 'offset') {
             return query;
