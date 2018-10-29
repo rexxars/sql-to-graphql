@@ -115,7 +115,7 @@ function onTablesSelected(tables) {
     });
 
     // Collect the data in parallel
-    async.parallel(steps.collect, onTableDataCollected);
+    async.parallelLimit(steps.collect, 10,onTableDataCollected);
 }
 
 // When table data has been collected, build an object representation of them
@@ -132,8 +132,7 @@ function onTableDataCollected(err, data) {
 
         models[model.name] = model;
     }
-
-    data.models = steps.findReferences(models);
+    data.models = steps.findReferences(models, opts);
 
     // Note: This mutates the models - sorry. PRs are welcome.
     steps.findOneToManyReferences(adapter, data.models, function(refErr) {

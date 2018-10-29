@@ -49,7 +49,7 @@ module.exports = {
                 type: 'list',
                 name: 'backend',
                 message: 'What kind of database is it?',
-                choices: ['mysql', 'postgres'],
+                choices: ['mysql', 'postgres', 'mssql', 'sqlite'],
                 default: 'mysql'
             });
         }

@@ -2,7 +2,7 @@
 
 var pluralize = require('pluralize');
 var camelCase = require('lodash/camelCase');
-var capitalize = require('lodash/capitalize');
+var upperFirst = require('lodash/upperFirst');
 var indexBy = require('lodash/keyBy');
 var columnToObject = require('./column-to-object');
 
@@ -35,7 +35,7 @@ function tableToObject(table, opts) {
 }
 
 function getTypeName(item) {
-    return pluralize(capitalize(camelCase(item)), 1);
+    return pluralize(upperFirst(camelCase(item)), 1);
 }
 
 function normalizeTableName(name, strip) {

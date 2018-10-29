@@ -175,6 +175,7 @@ function generateTypes(data, opts) {
     }
 
     function generateLimitOffsetArgs() {
+        addUsedType('GraphQLInt');
         return b.property('init', b.identifier('args'), b.objectExpression([
             b.property('init', b.identifier('limit'), b.objectExpression([
                 b.property('init', b.identifier('name'), b.literal('limit')),

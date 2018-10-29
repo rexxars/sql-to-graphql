@@ -31,10 +31,9 @@ function findRelationships(adapter, model, models, callback) {
                 return callback(err);
             }
 
-            if (!hasDupes) {
-                return done(null, model);
-            }
-
+            // if (!hasDupes) {
+            //     return done(null, model);
+            // }
             var reverseRefs = ref.model.listReferences;
             var refName = camelCase(pluralize(model.name));
             var description = pluralize(model.name) + ' belonging to this ' + ref.model.name;
@@ -64,4 +63,5 @@ function getUnaliasedField(field, model) {
             return unaliased;
         }
     }
+    return field
 }

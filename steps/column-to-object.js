@@ -5,6 +5,7 @@ var indexBy = require('lodash/keyBy');
 var camelCase = require('lodash/camelCase');
 var capitalize = require('lodash/capitalize');
 var generics = ['type'], undef;
+var unsupported_types = []
 
 function columnToObject(col, opts) {
     var column = merge({
@@ -12,7 +13,9 @@ function columnToObject(col, opts) {
         originalName: col.columnName,
         description: col.columnComment || undef,
         isNullable: col.isNullable === 'YES',
-        isPrimaryKey: col.columnKey === 'PRI'
+        isPrimaryKey: col.columnKey === 'PRI',
+        refTableName: col.refTableName,
+        refColumnName: col.refColumnName
     }, getType(col));
 
     if (column.isPrimaryKey && !opts.unaliasedPrimaryKeys) {
@@ -128,7 +131,10 @@ function getType(col) {
                 values: getEnumValueMap(col)
             };
         default:
-            console.log(col.dataType);
+          if (! unsupported_types.includes(col.datatype)) {
+            unsupported_types.push(col.datatype)
+            console.log('Unsupoported type: ' + col.dataType);
+          }
         //TODO Add missing mssql types
             return { type: 'string' };
             throw new Error('Type "' + col.dataType + '" not recognized');

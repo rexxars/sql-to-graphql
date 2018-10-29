@@ -43,7 +43,7 @@ module.exports = require('yargs')
     })
     .option('backend', {
         alias: 'b',
-        describe: 'Type of database (mysql, postgres, sqlite)',
+        describe: 'Type of database (mysql, postgres, sqlite, mssql)',
         type: 'string',
         default: 'mysql'
     })
@@ -71,12 +71,18 @@ module.exports = require('yargs')
         describe: 'Print output into separate files within the given directory',
         type: 'string'
     })
-    .option('es6', {
-        describe: 'Output in ES6 format (const, import et all)',
-        type: 'boolean',
-        default: false
+    .option('rel', {
+        describe: 'Relationship detection method - colids or backend',
+        type: 'string',
+        default: 'colids'
     })
-    .option('use-tabs', {
+     .option('schemas', {
+        alias: 's',
+        describe: 'Selected schemas for mssql - * or comma-separated list',
+        type: 'string',
+        default: 'dbo'
+    })
+   .option('use-tabs', {
         describe: 'Use tabs for indentation',
         type: 'boolean',
         default: false
