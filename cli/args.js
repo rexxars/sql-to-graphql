@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports = require('yargs')
     .usage('Usage: $0 [options]')
@@ -71,18 +71,23 @@ module.exports = require('yargs')
         describe: 'Print output into separate files within the given directory',
         type: 'string'
     })
+    .option('es6', {
+        describe: 'Output in ES6 format (const, import et all)',
+        type: 'boolean',
+        default: false
+    })
     .option('rel', {
         describe: 'Relationship detection method - colids or backend',
         type: 'string',
         default: 'colids'
     })
-     .option('schemas', {
+    .option('schemas', {
         alias: 's',
         describe: 'Selected schemas for mssql - * or comma-separated list',
         type: 'string',
         default: 'dbo'
     })
-   .option('use-tabs', {
+    .option('use-tabs', {
         describe: 'Use tabs for indentation',
         type: 'boolean',
         default: false
@@ -103,9 +108,9 @@ module.exports = require('yargs')
         default: '@TODO DESCRIBE ME'
     })
     .option('unaliased-primary-keys', {
-        describe: 'Disable aliasing of primary key fields to "id" for each type',
+        describe:
+            'Disable aliasing of primary key fields to "id" for each type',
         type: 'boolean',
         default: false
     })
-    .help('help')
-    .argv;
+    .help('help').argv
