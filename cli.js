@@ -15,7 +15,6 @@ var steps = {
   tableToObject: require('./steps/table-to-object'),
   findReferences: require('./steps/find-references'),
   findOneToManyReferences: require('./steps/find-one-to-many-rels'),
-  // generateTypes: require('./steps/generate-types'),
   outputData: require('./steps/output-data'),
 
   collect: {
