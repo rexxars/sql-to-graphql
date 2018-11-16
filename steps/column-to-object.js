@@ -3,9 +3,10 @@
 var merge = require('lodash/merge');
 var indexBy = require('lodash/keyBy');
 var camelCase = require('lodash/camelCase');
-var capitalize = require('lodash/capitalize');
 var generics = ['type'], undef;
 var unsupported_types = []
+
+var capitalize = s => s.charAt(0).toUpperCase() + s.slice(1)
 
 function columnToObject(col, opts) {
     var column = merge({
@@ -97,7 +98,7 @@ function getType(col) {
         // pg
         case 'character varying':
         case 'jsonb':
-            return { type: 'string' };
+            return { type: 'String' };
 
         // Integers
         case 'int':
@@ -108,18 +109,18 @@ function getType(col) {
         case 'smallint':
         case 'mediumint':
         case 'timestamp':
-            return { type: 'integer' };
+            return { type: 'Int' };
 
         // Floats
         case 'real':
         case 'float':
         case 'double':
         case 'double precision':
-            return { type: 'float' };
+            return { type: 'Float' };
 
         // Booleans
         case 'boolean':
-            return { type: 'boolean' };
+            return { type: 'Boolean' };
 
         // Enum special case
         case 'enum':
@@ -127,7 +128,7 @@ function getType(col) {
         // As well as postgres enums
         case 'USER-DEFINED':
             return {
-                type: 'enum',
+                type: 'Enum',
                 values: getEnumValueMap(col)
             };
         default:
@@ -136,7 +137,7 @@ function getType(col) {
             console.log('Unsupoported type: ' + col.dataType);
           }
         //TODO Add missing mssql types
-            return { type: 'string' };
+            return { type: 'String' };
             throw new Error('Type "' + col.dataType + '" not recognized');
     }
 }

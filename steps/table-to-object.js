@@ -3,6 +3,7 @@
 var pluralize = require('pluralize');
 var camelCase = require('lodash/camelCase');
 var upperFirst = require('lodash/upperFirst');
+var _pick = require('lodash/pick');
 var indexBy = require('lodash/keyBy');
 var columnToObject = require('./column-to-object');
 
@@ -20,6 +21,7 @@ function tableToObject(table, opts) {
         name: getTypeName(normalized),
         description: table.comment,
         table: table.name,
+        tableName: table.name,
         normalizedTable: normalized,
         fields: indexBy(fields, 'name'),
         aliasedFields: fields.reduce(function(aliases, field) {
@@ -28,9 +30,20 @@ function tableToObject(table, opts) {
             }
 
             return aliases;
-        }, {})
+        }, {}),
+        idFieldNum: 0 //_pick(fields, f => f.isPrimaryKey)
     };
-
+    model.type = model.name
+    model.typePlural = pluralize(model.type)
+    model.field = model.type.charAt(0).toLowerCase() + model.type.slice(1)
+    model.fieldPlural = pluralize(model.field)
+    
+    // if (model.name == 'Decline') {
+      console.log('fields', fields)
+    // }
+    const pk = fields.find( f => f.isPrimaryKey )
+    model.pkName = pk && pk.name
+    
     return model;
 }
 
@@ -39,12 +52,12 @@ function getTypeName(item) {
 }
 
 function normalizeTableName(name, strip) {
-    (strip.suffix || []).forEach(function(suffix) {
+    ;(strip.suffix || []).forEach(function(suffix) {
         name = name.replace(new RegExp(escapeRegExp(suffix) + '$'), '');
     });
 
     (strip.prefix || []).forEach(function(prefix) {
-        name = name.replace(new RegExp('^' + escapeRegExp(prefix)), '');
+      name = name.replace(new RegExp('^' + escapeRegExp(prefix)), '');
     });
 
     return name;

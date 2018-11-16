@@ -1,5 +1,6 @@
-#!/usr/bin/env node
 'use strict';
+
+let { schema } = require('./schema')
 
 var path = require('path');
 var async = require('async');
@@ -10,169 +11,170 @@ var partial = require('lodash/partial');
 var backends = require('./backends');
 var mapValues = require('lodash/mapValues');
 var steps = {
-    getTables: require('./steps/table-list'),
-    tableToObject: require('./steps/table-to-object'),
-    findReferences: require('./steps/find-references'),
-    findOneToManyReferences: require('./steps/find-one-to-many-rels'),
-    generateTypes: require('./steps/generate-types'),
-    outputData: require('./steps/output-data'),
+  getTables: require('./steps/table-list'),
+  tableToObject: require('./steps/table-to-object'),
+  findReferences: require('./steps/find-references'),
+  findOneToManyReferences: require('./steps/find-one-to-many-rels'),
+  // generateTypes: require('./steps/generate-types'),
+  outputData: require('./steps/output-data'),
 
-    collect: {
-        tableStructure: require('./steps/table-structure'),
-        tableComments: require('./steps/table-comment')
-    }
+  collect: {
+    tableStructure: require('./steps/table-structure'),
+    tableComments: require('./steps/table-comment')
+  }
 };
 
 // Force recast to throw away whitespace information
 opts.reuseWhitespace = false;
 
 if (opts.backend === 'sqlite' && !opts.database) {
-    opts.database = 'main';
+  opts.database = 'main';
 }
 
 if (opts.backend === 'sqlite' && !opts.dbFilename) {
-    return bail(new Error('You need to specify a database filename (--db-filename) when using the \'sqlite\' backend'));
+  return bail(new Error('You need to specify a database filename (--db-filename) when using the \'sqlite\' backend'));
 }
 
 if (!opts.interactive && !opts.database) {
-    return bail(new Error('You need to specify a database (--database)'));
+  return bail(new Error('You need to specify a database (--database)'));
 }
 
 if (!opts.interactive && !opts.outputDir) {
-    return bail(new Error('You need to provide an output directory (--output-dir=<path>) to generate an application'));
+  return bail(new Error('You need to provide an output directory (--output-dir=<path>) to generate an application'));
 }
 
 if (opts.interactive) {
-    prompts.dbCredentials(opts, function(options) {
-        opts = merge({}, opts, options);
+  prompts.dbCredentials(opts, function (options) {
+    opts = merge({}, opts, options);
 
-        initOutputPath();
-    });
-} else {
     initOutputPath();
+  });
+} else {
+  initOutputPath();
 }
 
 function initOutputPath() {
-    if (opts.outputDir) {
-        return initStyleOpts();
-    }
+  if (opts.outputDir) {
+    return initStyleOpts();
+  }
 
-    prompts.outputPath(function(outPath) {
-        opts.outputDir = outPath;
+  prompts.outputPath(function (outPath) {
+    opts.outputDir = outPath;
 
-        initStyleOpts();
-    });
+    initStyleOpts();
+  });
 }
 
 function initStyleOpts() {
-    if (!opts.interactive) {
-        return instantiate();
-    }
+  if (!opts.interactive) {
+    return instantiate();
+  }
 
-    prompts.styleOptions(opts, function(options) {
-        opts = options;
+  prompts.styleOptions(opts, function (options) {
+    opts = options;
 
-        instantiate();
-    });
+    instantiate();
+  });
 }
 
 var adapter;
 function instantiate() {
-    // Do we support the given backend?
-    var backend = backends(opts.backend);
-    if (!backend) {
-        return bail(new Error('Database backend "' + opts.backend + '" not supported'));
-    }
+  // Do we support the given backend?
 
-    // Instantiate the adapter for the given backend
-    adapter = backend(opts, function(err) {
-        bailOnError(err);
+  var backend = backends(opts.backend);
+  if (!backend) {
+    return bail(new Error('Database backend "' + opts.backend + '" not supported'));
+  }
 
-        setTimeout(getTables, 1000);
-    });
+  // Instantiate the adapter for the given backend
+  adapter = backend(opts, function (err) {
+    bailOnError(err);
+
+    setTimeout(getTables, 1000);
+  });
 }
 
 function getTables() {
-    // Collect a list of available tables
-    steps.getTables(adapter, opts, function(err, tableNames) {
-        bailOnError(err);
+  // Collect a list of available tables
+  steps.getTables(adapter, opts, function (err, tableNames) {
+    bailOnError(err);
 
-        // If we're in interactive mode, prompt the user to select from the list of available tables
-        if (opts.interactive) {
-            return prompts.tableSelection(tableNames, onTablesSelected);
-        }
+    // If we're in interactive mode, prompt the user to select from the list of available tables
+    if (opts.interactive) {
+      return prompts.tableSelection(tableNames, onTablesSelected);
+    }
 
-        // Use the found tables (or a filtered set if --table is used)
-        return onTablesSelected(tableNames);
-    });
+    // Use the found tables (or a filtered set if --table is used)
+    return onTablesSelected(tableNames);
+  });
 }
 
 // When tables have been selected, fetch data for those tables
 function onTablesSelected(tables) {
-    // Assign partialed functions to make the code slightly more readable
-    steps.collect = mapValues(steps.collect, function(method) {
-        return partial(method, adapter, { tables: tables });
-    });
+  // Assign partialed functions to make the code slightly more readable
+  steps.collect = mapValues(steps.collect, function (method) {
+    return partial(method, adapter, { tables: tables });
+  });
 
-    // Collect the data in parallel
-    async.parallelLimit(steps.collect, 10,onTableDataCollected);
+  // Collect the data in parallel
+  async.parallelLimit(steps.collect, 10, onTableDataCollected);
 }
 
 // When table data has been collected, build an object representation of them
 function onTableDataCollected(err, data) {
-    bailOnError(err);
+  bailOnError(err);
 
-    var tableName, models = {}, model;
-    for (tableName in data.tableStructure) {
-        model = steps.tableToObject({
-            name: tableName,
-            columns: data.tableStructure[tableName],
-            comment: data.tableComments[tableName]
-        }, opts);
+  var tableName, models = {}, model;
+  for (tableName in data.tableStructure) {
+    model = steps.tableToObject({
+      name: tableName,
+      columns: data.tableStructure[tableName],
+      comment: data.tableComments[tableName]
+    }, opts);
 
-        models[model.name] = model;
+    models[model.name] = model;
+  }
+  data.models = steps.findReferences(models, opts);
+
+  // Note: This mutates the models - sorry. PRs are welcome.
+  steps.findOneToManyReferences(adapter, data.models, function (refErr) {
+    if (refErr) {
+      throw refErr;
     }
-    data.models = steps.findReferences(models, opts);
 
-    // Note: This mutates the models - sorry. PRs are welcome.
-    steps.findOneToManyReferences(adapter, data.models, function(refErr) {
-        if (refErr) {
-            throw refErr;
-        }
+    // data.types = steps.generateTypes(data, opts);
 
-        data.types = steps.generateTypes(data, opts);
-
-        adapter.close();
-        steps.outputData(data, opts, onDataOutput);
-    });
+    adapter.close();
+    steps.outputData(data, opts, onDataOutput);
+  });
 }
 
 // When the data has been written to stdout/files
 function onDataOutput() {
-    if (!opts.outputDir) {
-        return;
-    }
+  if (!opts.outputDir) {
+    return;
+  }
 
-    if (opts.interactive) {
-        console.log('\n\n\n');
-    }
+  if (opts.interactive) {
+    console.log('\n\n\n');
+  }
 
-    var dir = path.resolve(opts.outputDir);
-    console.log('Demo app generated in ' + dir + '. To run:');
-    console.log('cd ' + dir);
-    console.log('npm install');
-    console.log('npm start');
-    console.log();
-    console.log('Then point your browser at http://localhost:3000');
+  var dir = path.resolve(opts.outputDir);
+  console.log('Demo app generated in ' + dir + '. To run:');
+  console.log('cd ' + dir);
+  console.log('npm install');
+  console.log('npm start');
+  console.log();
+  console.log('Then point your browser at http://localhost:3000');
 }
 
 function bail(err) {
-    console.error(err.message ? err.message : err.toString());
-    process.exit(1);
+  console.error(err.message ? err.message : err.toString());
+  process.exit(1);
 }
 
 function bailOnError(err) {
-    if (err) {
-        return bail(err);
-    }
+  if (err) {
+    return bail(err);
+  }
 }
