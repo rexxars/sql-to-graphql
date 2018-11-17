@@ -26,8 +26,7 @@ function outputData(data, opts, callback) {
     mkdirp.sync(resolversDir) 
         // Write a type index
     fs.writeFileSync(path.join(configDir, 'config.js'), configDef(opts))
-    let name
-    for (name in data.models) {
+    for (let name in data.models) {
         let model = data.models[name]
             let type = model.type
             fs.writeFileSync(path.join( typesDir, `${type}.js`), typeDef(model, data.models))

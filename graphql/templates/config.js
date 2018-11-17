@@ -2,10 +2,11 @@
 module.exports = opts => {
     const typeDefJS = `module.exports = {
   client: '${opts.backend}',
+  useNullAsDefault: true,
   connection: {
   ${
       opts.backend === 'sqlite'
-          ? `      filename: ${opts['db-filename']}`
+          ? `      filename: '${opts['db-filename']}'`
           : `host: ${opts.host},
   user: ${opts.user},
   password: ${opts.password},

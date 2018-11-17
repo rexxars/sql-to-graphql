@@ -8,19 +8,6 @@ module.exports = (model, models) => {
     const getRefs = []
     const findType = []
 
-    /*
-    const resolveRefs = (row, selections) => {
-  const siteField = selections.find(f => f.kind === 'Field' && f.name.value === 'site')
-  if (siteField) {
-    row.site = findOneSite({ id: row['siteId'] }, siteField.selectionSet.selections)
-  }
-  const zonesField = selections.find(f => f.kind === 'Field' && f.name.value === 'zones')
-  if (zonesField) {
-    row.zones = findZones({ declineId: row['id'] }, zonesField.selectionSet.selections)
-  }
-  return row
-}
-*/
     model.references.forEach(ref => {
         const { field, refField } = ref
         const type = ref.model.type
