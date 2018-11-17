@@ -1,9 +1,9 @@
 'use strict'
 
-var fs = require('fs')
-var path = require('path')
-var merge = require('lodash/merge')
-var mkdirp = require('mkdirp')
+const fs = require('fs-extra')
+const path = require('path')
+const merge = require('lodash/merge')
+const mkdirp = require('mkdirp')
 
 const configDef = require('../graphql/templates/config')
 const typeDef = require('../graphql/templates/type')
@@ -15,23 +15,28 @@ function outputData(data, opts, callback) {
     }
 
     // Output to a directory, in other words: split stuff up
-    var outputDir = path.resolve(opts.outputDir)
-    var typesDir = path.join(outputDir, 'graphql/types')
-    var resolversDir = path.join(outputDir, 'graphql/resolvers')
-    var configDir = path.join(outputDir, 'config')
+    const outputDir = path.resolve(opts.outputDir)
+    const typesDir = path.join(outputDir, 'graphql/types')
+    const resolversDir = path.join(outputDir, 'graphql/resolvers')
+    const configDir = path.join(outputDir, 'config')
+
+    mkdirp.sync(configDir)
+    fs.writeFileSync(path.join(configDir, 'config.js'), configDef(opts))
 
     // Write types
-    mkdirp.sync(configDir)
+
+    fs.removeSync(typesDir); 
     mkdirp.sync(typesDir) 
-    mkdirp.sync(resolversDir) 
-        // Write a type index
-    fs.writeFileSync(path.join(configDir, 'config.js'), configDef(opts))
-    for (let name in data.models) {
-        let model = data.models[name]
-            let type = model.type
-            fs.writeFileSync(path.join( typesDir, `${type}.js`), typeDef(model, data.models))
-            fs.writeFileSync(path.join( resolversDir, `${type}.js`), resolverDef(model, data.models))
-        }
+    fs.removeSync(resolversDir); 
+    mkdirp.sync(resolversDir)
+
+      // Write a type index
+      for (let name in data.models) {
+          let model = data.models[name]
+          let type = model.type
+          fs.writeFileSync(path.join( typesDir, `${type}.js`), typeDef(model, data.models))
+          fs.writeFileSync(path.join( resolversDir, `${type}.js`), resolverDef(model, data.models))
+      }
 
     callback()
 }

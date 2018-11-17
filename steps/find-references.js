@@ -40,11 +40,13 @@ function findReferencesForModelByID(model, models) {
                     fieldName += 'Ref';
                 }
 
-                references.push({
+                if (find(model.fields, { isPrimaryKey: true })) {
+                  references.push({
                     model: models[name],
                     field: fieldName,
                     refField: col.name
-                });
+                  });
+                }
 
                 return references;
             }

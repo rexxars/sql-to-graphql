@@ -4,7 +4,7 @@ module.exports = model => {
     const { type, typePlural, field, fieldPlural, pkName, fields } = model
     const pkType = pkName && fields[pkName].type
 
-    if (model.type === 'Decline') {
+    if (model.type === 'User') {
         console.log('model', model)
     }
 
@@ -22,9 +22,7 @@ module.exports = model => {
 
     const fields3 = Object.keys(fields)
         .map(f => fields[f])
-        .map(f =>
-            f.name === pkName ? `${f.name}: ${typX(f.type, f.isNullable)}` : `${f.name}: ${f.type}`
-        )
+        .map(f => `${f.name}: ${f.type}`)
         .join(', ')
 
     const typeDefJS = `export default
@@ -33,14 +31,14 @@ module.exports = model => {
   }
 
   type Query {
-    ${field}(${pkName}: ${pkType}): ${type}
+    ${field}(${fields3}): ${type}
     ${fieldPlural}: [${type}]
   }
 
   type Mutation {
     add${type}(${fields2}): ${type}
     edit${type}(${fields3}): ${type}
-    delete${type}(${pkName}: ${pkType}!): ConfirmDeleteKey
+    delete${type}(${fields3}): ConfirmDeleteKey
   }
 \``
 

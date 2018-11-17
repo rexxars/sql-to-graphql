@@ -38,10 +38,15 @@ function tableToObject(table, opts) {
     model.field = model.type.charAt(0).toLowerCase() + model.type.slice(1)
     model.fieldPlural = pluralize(model.field)
     
-    // if (model.name == 'Decline') {
-      console.log('fields', fields)
-    // }
-    const pk = fields.find( f => f.isPrimaryKey )
+    // Find primary key
+    // If none, assume column named 'id' is primary key
+    let pk = fields.find( f => f.isPrimaryKey )
+    if (!pk) {
+      pk = fields.find( f => f.name === 'id' )
+      if (pk) {
+        pk.isPrimaryKey = true
+      }
+    }
     model.pkName = pk && pk.name
     
     return model;
