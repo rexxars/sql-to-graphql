@@ -12,16 +12,14 @@ const partial = require('lodash/partial');
 const backends = require('./backends');
 const mapValues = require('lodash/mapValues');
 const steps = {
-  getTables: require('./steps/table-list'),
+  getTables: promisify(require('./steps/table-list')),
   tableToObject: require('./steps/table-to-object'),
   findReferences: require('./steps/find-references'),
   findOneToManyReferences: require('./steps/find-one-to-many-rels'),
   outputData: require('./steps/output-data'),
 
-  collect: {
-    tableStructure: require('./steps/table-structure'),
-    tableComments: require('./steps/table-comment')
-  }
+  tableStructure: promisify(require('./steps/table-structure')),
+  tableComments: promisify(require('./steps/table-comment'))
 };
 
 // Force recast to throw away whitespace information
@@ -81,7 +79,6 @@ var adapter;
 async function instantiate() {
 
   const sleep = promisify(setTimeout)
-  const getTablesAsync = promisify(steps.getTables);
 
   // Will hold a list of table names
   let tableNames
@@ -104,30 +101,23 @@ async function instantiate() {
     if (opts.interactive) {
       tableNames = await prompts.tableSelection(tableNames)
     } else {
-      tableNames = await getTablesAsync(adapter, opts)
+      tableNames = await steps.getTables(adapter, opts)
     }
     
-    return onTablesSelected(tableNames);
+    // When tables have been selected, fetch data for those tables
+    let data = {}
+    data.tableStructure = await steps.tableStructure(adapter, { tables: tableNames })
+    data.tableComments = await steps.tableComments(adapter, { tables: tableNames })
+    
+    return buildObjectRepresentation(data);
   }
   catch(err) {
     bailOnError(err);
   }
 }
 
-// When tables have been selected, fetch data for those tables
-function onTablesSelected(tables) {
-  // Assign partialed functions to make the code slightly more readable
-  steps.collect = mapValues(steps.collect, function (method) {
-    return partial(method, adapter, { tables: tables });
-  });
-
-  // Collect the data in parallel
-  async.parallelLimit(steps.collect, 10, onTableDataCollected);
-}
-
 // When table data has been collected, build an object representation of them
-function onTableDataCollected(err, data) {
-  bailOnError(err);
+async function buildObjectRepresentation(data) {
 
   var tableName, models = {}, model;
   for (tableName in data.tableStructure) {
@@ -146,8 +136,6 @@ function onTableDataCollected(err, data) {
     if (refErr) {
       throw refErr;
     }
-
-    // data.types = steps.generateTypes(data, opts);
 
     adapter.close();
     steps.outputData(data, opts, onDataOutput);
