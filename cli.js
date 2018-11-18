@@ -2,15 +2,16 @@
 
 let { schema } = require('./schema')
 
-var path = require('path');
-var async = require('async');
-var opts = require('./cli/args');
-var prompts = require('./cli/prompts');
-var merge = require('lodash/merge');
-var partial = require('lodash/partial');
-var backends = require('./backends');
-var mapValues = require('lodash/mapValues');
-var steps = {
+const {promisify} = require('util');
+const path = require('path');
+const async = require('async');
+const opts = require('./cli/args');
+const prompts = require('./cli/prompts');
+const merge = require('lodash/merge');
+const partial = require('lodash/partial');
+const backends = require('./backends');
+const mapValues = require('lodash/mapValues');
+const steps = {
   getTables: require('./steps/table-list'),
   tableToObject: require('./steps/table-to-object'),
   findReferences: require('./steps/find-references'),
@@ -77,35 +78,40 @@ function initStyleOpts() {
 }
 
 var adapter;
-function instantiate() {
-  // Do we support the given backend?
+async function instantiate() {
 
-  var backend = backends(opts.backend);
-  if (!backend) {
-    return bail(new Error('Database backend "' + opts.backend + '" not supported'));
-  }
+  const sleep = promisify(setTimeout)
+  const getTablesAsync = promisify(steps.getTables);
 
-  // Instantiate the adapter for the given backend
-  adapter = backend(opts, function (err) {
-    bailOnError(err);
+  // Will hold a list of table names
+  let tableNames
 
-    setTimeout(getTables, 1000);
-  });
-}
+  try {
+    // Do we support the given backend?
+    let backend = backends(opts.backend)
+    if (!backend) {
+      return bail(new Error('Database backend "' + opts.backend + '" not supported'));
+    }
 
-function getTables() {
-  // Collect a list of available tables
-  steps.getTables(adapter, opts, function (err, tableNames) {
-    bailOnError(err);
+    // Instantiate the adapter for the given backend
+    adapter = backend(opts, function (err) {
+        bailOnError(err);
+    })
+
+    await sleep(1000)
 
     // If we're in interactive mode, prompt the user to select from the list of available tables
     if (opts.interactive) {
-      return prompts.tableSelection(tableNames, onTablesSelected);
+      tableNames = await prompts.tableSelection(tableNames)
+    } else {
+      tableNames = await getTablesAsync(adapter, opts)
     }
-
-    // Use the found tables (or a filtered set if --table is used)
+    
     return onTablesSelected(tableNames);
-  });
+  }
+  catch(err) {
+    bailOnError(err);
+  }
 }
 
 // When tables have been selected, fetch data for those tables
@@ -174,6 +180,7 @@ function bail(err) {
 
 function bailOnError(err) {
   if (err) {
+    throw err
     return bail(err);
   }
 }
