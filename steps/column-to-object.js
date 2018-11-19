@@ -88,6 +88,7 @@ function getType(col) {
         case 'set':
         case 'char':
         case 'text':
+        case 'string':
         case 'uuid':
         case 'varchar':
         case 'nvarchar':

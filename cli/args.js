@@ -71,11 +71,6 @@ module.exports = require('yargs')
         describe: 'Print output into separate files within the given directory',
         type: 'string'
     })
-    .option('es6', {
-        describe: 'Output in ES6 format (const, import et all)',
-        type: 'boolean',
-        default: false
-    })
     .option('rel', {
         describe: 'Relationship detection method - colids or backend',
         type: 'string',
@@ -83,24 +78,9 @@ module.exports = require('yargs')
     })
     .option('schemas', {
         alias: 's',
-        describe: 'Selected schemas for mssql - * or comma-separated list',
+        describe: 'Selected schemas for mssql: * or comma-separated list',
         type: 'string',
         default: 'dbo'
-    })
-    .option('use-tabs', {
-        describe: 'Use tabs for indentation',
-        type: 'boolean',
-        default: false
-    })
-    .option('tab-width', {
-        describe: 'Width of tabs',
-        type: 'number',
-        default: 4
-    })
-    .option('quote', {
-        describe: 'Quote style (single/double)',
-        type: 'string',
-        default: 'single'
     })
     .option('default-description', {
         describe: 'The description to use for columns without a comment',
@@ -108,8 +88,7 @@ module.exports = require('yargs')
         default: '@TODO DESCRIBE ME'
     })
     .option('unaliased-primary-keys', {
-        describe:
-            'Disable aliasing of primary key fields to "id" for each type',
+        describe: 'Disable aliasing of primary key fields to "id" for each type',
         type: 'boolean',
         default: false
     })

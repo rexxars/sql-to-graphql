@@ -4,9 +4,9 @@ module.exports = model => {
     const { type, typePlural, field, fieldPlural, pkName, fields } = model
     const pkType = pkName && fields[pkName].type
 
-    if (model.type === 'User') {
-        console.log('model', model)
-    }
+    // if (model.type === 'User') {
+    //     console.log('model', model)
+    // }
 
     let fields1 = Object.keys(fields)
         .map(f => fields[f])
