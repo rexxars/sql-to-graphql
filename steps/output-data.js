@@ -14,8 +14,8 @@ function outputData(data, opts, callback) {
 
     // Output to a directory, in other words: split stuff up
     const outputDir = path.resolve(opts.outputDir)
-    const typesDir = path.join(outputDir, 'graphql/types')
-    const resolversDir = path.join(outputDir, 'graphql/resolvers')
+    const typesDir = path.join(outputDir, 'graphql', 'types')
+    const resolversDir = path.join(outputDir, 'graphql', 'resolvers')
     const configDir = path.join(outputDir, 'config')
 
     fs.mkdirpSync(configDir)

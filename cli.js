@@ -92,7 +92,7 @@ async function instantiate(opts) {
     let tableNames = await steps.getTables(adapter, opts)
     // If we're in interactive mode, prompt the user to select from the list of available tables
     if (opts.interactive) {
-      tableNames = await prompts.tableSelection(tableNames)
+      tableNames = (await prompts.tableSelection(tableNames)).tables
     }
     
     // When tables have been selected, fetch data for those tables
