@@ -6,19 +6,22 @@ module.exports = (model, models) => {
 
     const imports = []
     const getRefs = []
-    const findType = []
+    const imports = {}
 
     model.references.forEach(ref => {
         const { field, refField } = ref
         const type = ref.model.type
 
-        imports.push(`import {findOne${type}} from './${type}'`)
+        if (!imports[type]) {
+            imports[type] = true
+            imports.push(`import {findOne${type}} from './${type}'`)
+        }
 
-        getRefs.push(`const ${field}Field = selections.find(f => f.kind === 'Field' && f.name.value === '${field}')
-    if (${field}Field) {
+        getRefs.push(`const ${fieldAlias}Field = selections.find(f => f.kind === 'Field' && f.name.value === '${fieldAlias}')
+    if (${fieldAlias}Field) {
       row.${field} = findOne${type}({ ${
             ref.model.pkName
-        }: row['${refField}'] }, ${field}Field.selectionSet.selections)
+        }: row['${refField}'] }, ${fieldAlias}Field.selectionSet.selections)
     }
 `)
     })
