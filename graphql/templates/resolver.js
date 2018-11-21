@@ -6,14 +6,14 @@ module.exports = (model, models) => {
 
     const imports = []
     const getRefs = []
-    const imports = {}
+    const findOneImports = {}
 
     model.references.forEach(ref => {
-        const { field, refField } = ref
+        const { field, refField, fieldAlias } = ref
         const type = ref.model.type
 
-        if (!imports[type]) {
-            imports[type] = true
+        if (!findOneImports[type]) {
+            findOneImports[type] = true
             imports.push(`import {findOne${type}} from './${type}'`)
         }
 
