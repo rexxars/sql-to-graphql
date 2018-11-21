@@ -6,36 +6,41 @@ module.exports = (model, models) => {
 
     const imports = []
     const getRefs = []
-    const imports = {}
-
+    const findOneImports = {}
+    const findImports = {}
+    
     model.references.forEach(ref => {
-        const { field, refField } = ref
+        const { field, refField, fieldAlias } = ref
         const type = ref.model.type
 
-        if (!imports[type]) {
-            imports[type] = true
+        if (!findOneImports[type]) {
+            findOneImports[type] = true
             imports.push(`import {findOne${type}} from './${type}'`)
         }
 
-        getRefs.push(`const ${fieldAlias}Field = selections.find(f => f.kind === 'Field' && f.name.value === '${fieldAlias}')
-    if (${fieldAlias}Field) {
+        getRefs.push(`refField = selections.find(f => f.kind === 'Field' && f.name.value === '${fieldAlias}')
+    if (refField) {
       row.${field} = findOne${type}({ ${
             ref.model.pkName
-        }: row['${refField}'] }, ${fieldAlias}Field.selectionSet.selections)
+        }: row['${refField}'] }, refField.selectionSet.selections)
     }
 `)
     })
 
     model.listReferences.forEach(ref => {
         const { fieldPlural, typePlural, type } = ref.model
-        imports.push(`import {find${typePlural}} from './${type}'`)
+
+        if (!findImports[type]) {
+            findImports[type] = true
+            imports.push(`import {find${typePlural}} from './${type}'`)
+        }
 
         getRefs.push(
-            `const ${fieldPlural}Field = selections.find(f => f.kind === 'Field' && f.name.value === '${fieldPlural}')
- if (${fieldPlural}Field) {
-      row.${fieldPlural} = find${typePlural}({ ${ref.refField}: row['${
+            `refField = selections.find(f => f.kind === 'Field' && f.name.value === '${ref.field}')
+ if (refField) {
+      row.${ref.field} = find${typePlural}({ ${ref.refField}: row['${
                 ref.model.pkName
-            }'] }, ${fieldPlural}Field.selectionSet.selections)
+            }'] }, refField.selectionSet.selections)
     }
 `
         )
@@ -62,6 +67,7 @@ const bridge = {
 }
 
 const resolveRefs = (row, selections) => {
+  let refField
   ${getRefs.join('\n')}
   return row
 }

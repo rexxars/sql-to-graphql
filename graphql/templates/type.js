@@ -11,8 +11,8 @@ module.exports = model => {
     let fields1 = Object.keys(fields)
         .map(f => fields[f])
         .map(f => `${f.name}: ${typX(f.type, f.isNullable)}`)
-    model.references.forEach(f => fields1.push(`${f.field}: ${f.model.type}`))
-    model.listReferences.forEach(f => fields1.push(`${f.model.fieldPlural}: [${f.model.type}]`))
+    model.references.forEach(f => fields1.push(`${f.fieldAlias}: ${f.model.type}`))
+    model.listReferences.forEach(f => fields1.push(`${f.field}: [${f.model.type}]`))
     fields1 = fields1.join('\n    ')
 
     const fields2 = Object.keys(fields)

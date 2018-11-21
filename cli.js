@@ -130,6 +130,7 @@ async function buildObjectRepresentation(data, opts) {
   // Note: This mutates the models - sorry. PRs are welcome.
   await steps.findOneToManyReferences(adapter, data.models)
 
+console.log(data.models.SalesCurrency.references)
   adapter.close();
 
   }

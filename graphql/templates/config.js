@@ -7,7 +7,7 @@ module.exports = opts => {
   ${
       opts.backend === 'sqlite'
           ? `      filename: '${opts['db-filename']}'`
-          : `host: '${opts.host}',
+          : `host: '${opts.host.replace(/\\/g, '\\\\')}',
   port: '${opts.port}',
   user: '${opts.user}',
   password: '${opts.password}',
