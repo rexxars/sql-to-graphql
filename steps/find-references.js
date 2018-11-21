@@ -12,6 +12,8 @@ function findReferences(models, opts) {
             opts.rel === 'colids' ? findReferencesForModelByID(models[type], models) :
             opts.rel === 'backend' ? findReferencesForModelBackend(models[type], models) :
             [];
+        aliasMultipleReferences(models[type])
+  console.log(models[type].references)
         models[type].listReferences = [];
     }
 
@@ -97,5 +99,22 @@ function findReferencesForModelBackend(model, models) {
 function isForeignKeyColumn(col) {
     return !!col.refTableName;
 }
+
+function aliasMultipleReferences(model) {
+  // If a model refers more than once o another model,
+  // we need to provide an alias field for additional
+  // references. Just append 2, 3 ...
+  let refModels = {}
+  model.references.forEach(ref => {
+    let field = ref.field
+    if (refModels[field]) {
+      ref.fieldAlias = field + refModels[field]++
+    } else {
+      refModels[field] = 1
+      ref.fieldAlias = field
+    }
+  })
+}
+
 
 module.exports = findReferences;
