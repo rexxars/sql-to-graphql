@@ -1,7 +1,9 @@
+const pluralize = require('pluralize')
+
 module.exports = model => {
     const typX = (type, isNullable) => `${type}${isNullable ? '' : '!'}`
 
-    const { type, typePlural, field, fieldPlural, pkName, fields } = model
+    const { type, field, pkName, fields } = model
     const pkType = pkName && fields[pkName].type
 
     // if (model.type === 'User') {
@@ -11,7 +13,7 @@ module.exports = model => {
     let fields1 = Object.keys(fields)
         .map(f => fields[f])
         .map(f => `${f.name}: ${typX(f.type, f.isNullable)}`)
-    model.references.forEach(f => fields1.push(`${f.fieldAlias}: ${f.model.type}`))
+    model.references.forEach(f => fields1.push(`${f.field}: ${f.model.type}`))
     model.listReferences.forEach(f => fields1.push(`${f.field}: [${f.model.type}]`))
     fields1 = fields1.join('\n    ')
 
@@ -32,7 +34,7 @@ module.exports = model => {
 
   type Query {
     ${field}(${fields3}): ${type}
-    ${fieldPlural}: [${type}]
+    ${pluralize(field)}: [${type}]
   }
 
   type Mutation {

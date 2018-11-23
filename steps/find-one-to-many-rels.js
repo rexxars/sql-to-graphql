@@ -40,7 +40,7 @@ function findRelationships(adapter, model, models, callback) {
             if (find(reverseRefs, { field: refName }) || ref.model.fields[refName]) {
                 // @TODO find a better name algo resolve mechanism
                 // `thread_id` should naturally be `threads`, while `old_thread_id` should be.. something else
-                refName += capitalize(camelCase(referenceColumn)).replace(/Id$/, '');
+                refName += capitalize(camelCase(referenceColumn)).replace(/id$/i, '');
                 description += '..? (' + referenceColumn + ')';
             }
 

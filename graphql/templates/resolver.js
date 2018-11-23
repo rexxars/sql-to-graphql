@@ -1,26 +1,21 @@
-const _camelCase = require('lodash/camelCase')
-const _pick = require('lodash/pick')
+const pluralize = require('pluralize')
 
 module.exports = (model, models) => {
     const { type, typePlural, field, fieldPlural, tableName, pkName, fields } = model
 
-    const imports = []
+    const imports = {}
     const getRefs = []
-    const findOneImports = {}
-    const findImports = {}
     
     model.references.forEach(ref => {
-        const { field, refField, fieldAlias } = ref
+        const { field, refField } = ref
         const type = ref.model.type
+        const findOneType = 'findOne' + type
 
-        if (!findOneImports[type]) {
-            findOneImports[type] = true
-            imports.push(`import {findOne${type}} from './${type}'`)
-        }
+        imports[findOneType] = `import {${findOneType}} from './${type}'`
 
-        getRefs.push(`refField = selections.find(f => f.kind === 'Field' && f.name.value === '${fieldAlias}')
+        getRefs.push(`refField = selections.find(f => f.kind === 'Field' && f.name.value === '${field}')
     if (refField) {
-      row.${field} = findOne${type}({ ${
+      row.${field} = ${findOneType}({ ${
             ref.model.pkName
         }: row['${refField}'] }, refField.selectionSet.selections)
     }
@@ -28,17 +23,15 @@ module.exports = (model, models) => {
     })
 
     model.listReferences.forEach(ref => {
-        const { fieldPlural, typePlural, type } = ref.model
+        const { type } = ref.model
+        const findTypeList = 'find' + pluralize(type)
 
-        if (!findImports[type]) {
-            findImports[type] = true
-            imports.push(`import {find${typePlural}} from './${type}'`)
-        }
+        imports[findTypeList] = `import {${findTypeList}} from './${type}'`
 
         getRefs.push(
             `refField = selections.find(f => f.kind === 'Field' && f.name.value === '${ref.field}')
- if (refField) {
-      row.${ref.field} = find${typePlural}({ ${ref.refField}: row['${
+  if (refField) {
+      row.${ref.field} = ${findTypeList}({ ${ref.refField}: row['${
                 ref.model.pkName
             }'] }, refField.selectionSet.selections)
     }
@@ -51,7 +44,7 @@ import _pick from 'lodash/pick'
 import { findOne, find, create, findOneAndUpdate, findOneAndDelete } from '../../knex/operations'
 
 // Repeat for relations
-${imports.join('\n')}
+${Object.values(imports).join('\n')}
 
 const bridge = {
   type: '${type}',
