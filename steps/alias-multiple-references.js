@@ -1,38 +1,35 @@
 'use strict';
 
-var filter = require('lodash/filter');
-var find = require('lodash/find');
-var snakeCase = require('lodash/snakeCase');
-var camelCase = require('lodash/camelCase');
 var capitalize = require('lodash/capitalize');
 
 function aliasMultipleReferences(models, opts) {
     for (var type in models) {
-        models[type].references =
-            opts.rel === 'colids' ? findReferencesForModelByID(models[type], models) :
-            opts.rel === 'backend' ? findReferencesForModelBackend(models[type], models) :
-            [];
-        models[type].listReferences = [];
+        aliasReferences(models[type].references)
+        aliasReferences(models[type].listReferences)
     }
-
     return models;
 }
 
-function aliasMultipleReferences(model) {
-  // If a model refers more than once o another model,
+function aliasReferences(references) {
+  // If a model refers more than once to another model,
   // we need to provide an alias field for additional
-  // references. Just append 2, 3 ...
-  let refModels = {}
-  model.references.forEach(ref => {
-    let field = ref.field
-    if (refModels[field]) {
-      ref.fieldAlias = field + refModels[field]++
+  // references. Append the ref field.
+  let modelCnts = {}
+  references.forEach( ref => {
+    if (modelCnts[ref.field]) {
+      modelCnts[ref.field]++
     } else {
-      refModels[field] = 1
-      ref.fieldAlias = field
+      modelCnts[ref.field] = 1
+    }
+  })
+  console.log('modelCnts', modelCnts)
+
+  references.forEach(ref => {
+    if (modelCnts[ref.field] > 1) {
+      ref.field = ref.field + capitalize(ref.refField).replace(/id$/i, '')
     }
   })
 }
 
 
-module.exports = findReferences;
+module.exports = aliasMultipleReferences;

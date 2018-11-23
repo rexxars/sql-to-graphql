@@ -14,10 +14,7 @@ module.exports = function findOneToManyRelationships(adapter, models, callback) 
         return tasklist;
     }, {});
 
-    async.parallel(tasks, () => {
-      aliasMultipleReferences(models)
-      callback()
-    });
+    async.parallel(tasks, callback);
 };
 
 function findRelationships(adapter, model, models, callback) {
@@ -67,33 +64,5 @@ function getUnaliasedField(field, model) {
         }
     }
     return field
-}
-
-function aliasMultipleReferences(models) {
-    for (var type in models) {
-        aliasListReferences(models[type].listReferences)
-    }
-}
-
-
-function aliasListReferences(references) {
-  // If a model refers more than once to another model,
-  // we need to provide an alias field for additional
-  // references. Append the ref field.
-  let modelCnts = {}
-  references.forEach( ref => {
-    if (modelCnts[ref.field]) {
-      modelCnts[ref.field]++
-    } else {
-      modelCnts[ref.field] = 1
-    }
-  })
-  console.log('modelCnts', modelCnts)
-
-  references.forEach(ref => {
-    if (modelCnts[ref.field] > 1) {
-      ref.field = ref.field + capitalize(ref.refField).replace(/id$/i, '')
-    }
-  })
 }
 

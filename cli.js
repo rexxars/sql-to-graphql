@@ -11,6 +11,7 @@ const steps = {
   tableToObject: require('./steps/table-to-object'),
   findReferences: require('./steps/find-references'),
   findOneToManyReferences: promisify(require('./steps/find-one-to-many-rels')),
+  aliasMultipleReferences: require('./steps/alias-multiple-references'),
   outputData: promisify(require('./steps/output-data')),
 
   tableStructure: promisify(require('./steps/table-structure')),
@@ -129,6 +130,8 @@ async function buildObjectRepresentation(data, opts) {
 
   // Note: This mutates the models - sorry. PRs are welcome.
   await steps.findOneToManyReferences(adapter, data.models)
+
+  steps.aliasMultipleReferences(models, opts)
 
 console.log(data.models.SalesCurrency.references)
   adapter.close();
