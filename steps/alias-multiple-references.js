@@ -25,8 +25,11 @@ function aliasReferences(references) {
   console.log('modelCnts', modelCnts)
 
   references.forEach(ref => {
-    if (modelCnts[ref.field] > 1) {
-      ref.field = ref.field + capitalize(ref.refField).replace(/id$/i, '')
+    const field = ref.field
+    if (modelCnts[field] > 1 || ref.model.fields[field]) {
+      const colAlias = capitalize(ref.refField).replace(/id$/i, '')
+      ref.field = field + colAlias
+      description += '..? (' + colAlias + ')';
     }
   })
 }
