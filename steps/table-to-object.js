@@ -1,75 +1,74 @@
-'use strict';
+'use strict'
 
-var pluralize = require('pluralize');
-var camelCase = require('lodash/camelCase');
-var upperFirst = require('lodash/upperFirst');
-var _pick = require('lodash/pick');
-var indexBy = require('lodash/keyBy');
-var columnToObject = require('./column-to-object');
+const pluralize = require('pluralize')
+const camelCase = require('lodash/camelCase')
+const upperFirst = require('lodash/upperFirst')
+const indexBy = require('lodash/keyBy')
+const columnToObject = require('./column-to-object')
 
 function tableToObject(table, opts) {
-    var normalized = normalizeTableName(table.name, {
-        suffix: opts.stripSuffix,
-        prefix: opts.stripPrefix
-    });
+  var normalized = normalizeTableName(table.name, {
+    suffix: opts.stripSuffix,
+    prefix: opts.stripPrefix
+  })
 
-    var fields = table.columns.map(function(column) {
-        return columnToObject(column, opts);
-    });
+  const fields = table.columns.map(function(column) {
+    return columnToObject(column, opts)
+  })
 
-    var model = {
-        name: getTypeName(normalized),
-        description: table.comment,
-        table: table.name,
-        tableName: table.name,
-        normalizedTable: normalized,
-        fields: indexBy(fields, 'name'),
-        aliasedFields: fields.reduce(function(aliases, field) {
-            if (field.name !== field.originalName) {
-                aliases[field.originalName] = field.name;
-            }
-
-            return aliases;
-        }, {}),
-        idFieldNum: 0 //_pick(fields, f => f.isPrimaryKey)
-    };
-    model.type = model.name
-    model.typePlural = pluralize(model.type)
-    model.field = model.type.charAt(0).toLowerCase() + model.type.slice(1)
-    model.fieldPlural = pluralize(model.field)
-    
-    // Find primary key
-    // If none, assume column named 'id' is primary key
-    let pk = fields.find( f => f.isPrimaryKey )
-    if (!pk) {
-      pk = fields.find( f => f.name === 'id' )
-      if (pk) {
-        pk.isPrimaryKey = true
+  const model = {
+    name: getTypeName(normalized),
+    description: table.comment,
+    table: table.name,
+    tableName: table.name,
+    normalizedTable: normalized,
+    fields: indexBy(fields, 'name'),
+    aliasedFields: fields.reduce(function(aliases, field) {
+      if (field.name !== field.originalName) {
+        aliases[field.originalName] = field.name
       }
+
+      return aliases
+    }, {}),
+    idFieldNum: 0 //_pick(fields, f => f.isPrimaryKey)
+  }
+  model.type = model.name
+  model.typePlural = pluralize(model.type)
+  model.field = model.type.charAt(0).toLowerCase() + model.type.slice(1)
+  model.fieldPlural = pluralize(model.field)
+
+  // Find primary key
+  // If none, assume column named 'id' is primary key
+  let pk = fields.find(f => f.isPrimaryKey)
+  if (!pk) {
+    pk = fields.find(f => f.name === 'id')
+    if (pk) {
+      pk.isPrimaryKey = true
     }
-    model.pkName = pk && pk.name
-    
-    return model;
+  }
+  model.pkName = pk && pk.name
+
+  return model
 }
 
 function getTypeName(item) {
-    return pluralize(upperFirst(camelCase(item)), 1);
+  return pluralize(upperFirst(camelCase(item)), 1)
 }
 
 function normalizeTableName(name, strip) {
-    ;(strip.suffix || []).forEach(function(suffix) {
-        name = name.replace(new RegExp(escapeRegExp(suffix) + '$'), '');
-    });
+  ;(strip.suffix || []).forEach(function(suffix) {
+    name = name.replace(new RegExp(escapeRegExp(suffix) + '$'), '')
+  })
 
-    (strip.prefix || []).forEach(function(prefix) {
-      name = name.replace(new RegExp('^' + escapeRegExp(prefix)), '');
-    });
+  ;(strip.prefix || []).forEach(function(prefix) {
+    name = name.replace(new RegExp('^' + escapeRegExp(prefix)), '')
+  })
 
-    return name;
+  return name
 }
 
 function escapeRegExp(str) {
-    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
+  return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')
 }
 
-module.exports = tableToObject;
+module.exports = tableToObject

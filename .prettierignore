@@ -1,8 +1,3 @@
 dist
 *.json
 node_modules/
-generated/
-steps/
-util/
-cli.js
-

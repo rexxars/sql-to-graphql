@@ -1,13 +1,13 @@
-'use strict';
+'use strict'
 
-var capitalize = require('lodash/capitalize');
+const capitalize = require('lodash/capitalize')
 
 function aliasMultipleReferences(models, opts) {
-    for (var type in models) {
-        aliasReferences(models[type].references)
-        aliasReferences(models[type].listReferences)
-    }
-    return models;
+  for (var type in models) {
+    aliasReferences(models[type].references)
+    aliasReferences(models[type].listReferences)
+  }
+  return models
 }
 
 function aliasReferences(references) {
@@ -15,7 +15,7 @@ function aliasReferences(references) {
   // we need to provide an alias field for additional
   // references. Append the ref field.
   let modelCnts = {}
-  references.forEach( ref => {
+  references.forEach(ref => {
     if (modelCnts[ref.field]) {
       modelCnts[ref.field]++
     } else {
@@ -35,4 +35,4 @@ function aliasReferences(references) {
   })
 }
 
-module.exports = aliasMultipleReferences;
+module.exports = aliasMultipleReferences

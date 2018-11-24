@@ -1,24 +1,24 @@
 /* eslint camelcase: 0 */
-'use strict';
+'use strict'
 
-var knex = require('knex');
-var pluck = require('lodash/map');
-var mapKeys = require('lodash/mapKeys');
-var contains = require('lodash/includes');
-var camelCase = require('lodash/camelCase');
-var undef;
+const knex = require('knex')
+const pluck = require('lodash/map')
+const mapKeys = require('lodash/mapKeys')
+const contains = require('lodash/includes')
+const camelCase = require('lodash/camelCase')
+let undef
 
 module.exports = function mysqlBackend(opts, callback) {
-    var mysql = knex({
+    const mysql = knex({
         client: 'mysql',
         connection: opts
-    });
+    })
 
-    process.nextTick(callback);
+    process.nextTick(callback)
 
     return {
         getTables: function(tableNames, cb) {
-            var matchAll = tableNames.length === 1 && tableNames[0] === '*';
+            const matchAll = tableNames.length === 1 && tableNames[0] === '*'
 
             mysql
                 .select('table_name')
@@ -27,16 +27,16 @@ module.exports = function mysqlBackend(opts, callback) {
                 .where('table_type', 'BASE TABLE')
                 .catch(cb)
                 .then(function(tbls) {
-                    tbls = pluck(tbls, 'table_name');
+                    tbls = pluck(tbls, 'table_name')
 
                     if (!matchAll) {
                         tbls = tbls.filter(function(tbl) {
-                            return contains(tableNames, tbl);
-                        });
+                            return contains(tableNames, tbl)
+                        })
                     }
 
-                    cb(null, tbls);
-                });
+                    cb(null, tbls)
+                })
         },
 
         getTableComment: function(tableName, cb) {
@@ -49,8 +49,8 @@ module.exports = function mysqlBackend(opts, callback) {
                 })
                 .catch(cb)
                 .then(function(info) {
-                    cb(null, info ? info.comment || undef : undef);
-                });
+                    cb(null, info ? info.comment || undef : undef)
+                })
         },
 
         getTableStructure: function(tableName, cb) {
@@ -73,8 +73,8 @@ module.exports = function mysqlBackend(opts, callback) {
                 .orderBy('ordinal_position', 'asc')
                 .catch(cb)
                 .then(function(info) {
-                    cb(null, (info || []).map(camelCaseKeys));
-                });
+                    cb(null, (info || []).map(camelCaseKeys))
+                })
         },
 
         hasDuplicateValues: function(table, column, cb) {
@@ -86,18 +86,18 @@ module.exports = function mysqlBackend(opts, callback) {
                 .limit(1)
                 .catch(cb)
                 .then(function(info) {
-                    cb(null, (info || []).length > 0);
-                });
+                    cb(null, (info || []).length > 0)
+                })
         },
 
         close: function(cb) {
-            mysql.destroy(cb);
+            mysql.destroy(cb)
         }
-    };
-};
+    }
+}
 
 function camelCaseKeys(obj) {
     return mapKeys(obj, function(val, key) {
-        return camelCase(key);
-    });
+        return camelCase(key)
+    })
 }

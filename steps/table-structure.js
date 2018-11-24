@@ -1,20 +1,20 @@
-'use strict';
+'use strict'
 
-var async = require('async');
+const async = require('async')
 
 function getTableStructures(adapter, opts, cb) {
-    var tables = opts.tables.reduce(function(map, tbl) {
-        map[tbl] = getTableStructureTask(adapter, tbl);
-        return map;
-    }, {});
+  const tables = opts.tables.reduce(function(map, tbl) {
+    map[tbl] = getTableStructureTask(adapter, tbl)
+    return map
+  }, {})
 
-    async.parallel(tables, cb);
+  async.parallel(tables, cb)
 }
 
 function getTableStructureTask(adapter, tblName) {
-    return function getTableStructure(cb) {
-        adapter.getTableStructure(tblName, cb);
-    };
+  return function getTableStructure(cb) {
+    adapter.getTableStructure(tblName, cb)
+  }
 }
 
-module.exports = getTableStructures;
+module.exports = getTableStructures

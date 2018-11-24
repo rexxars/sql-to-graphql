@@ -1,59 +1,53 @@
 /* eslint camelcase: 0 */
-'use strict';
+'use strict'
 
-var knex = require('knex');
-var mapKeys = require('lodash/mapKeys');
-var contains = require('lodash/includes');
-var camelCase = require('lodash/camelCase');
-var pluck = require('lodash/map');
-var undef;
+const knex = require('knex')
+const mapKeys = require('lodash/mapKeys')
+const contains = require('lodash/includes')
+const camelCase = require('lodash/camelCase')
+const pluck = require('lodash/map')
 
 module.exports = function mssqlBackend(opts, callback) {
-    var mssql = knex({
+    const mssql = knex({
         client: 'mssql',
         connection: opts
-    });
+    })
 
     opts.stripPrefix = ['dbo.']
 
-    process.nextTick(callback);
+    process.nextTick(callback)
 
     return {
         getTables: function(tableNames, cb) {
-            var matchAll = tableNames.length === 1 && tableNames[0] === '*';
+            const matchAll = tableNames.length === 1 && tableNames[0] === '*'
 
             // omit dbo. from table name if dbo schema selected
-            var tablename_expr = 
-              `table_schema + '.' + table_name`
-              // `case when table_schema = 'dbo' then table_name else
-              //                 table_schema + '.' + table_name end`
+            const tablename_expr = `table_schema + '.' + table_name`
+            // `case when table_schema = 'dbo' then table_name else
+            //                 table_schema + '.' + table_name end`
 
-            var sql =
-              mssql
+            let sql = mssql
                 .select(mssql.raw(tablename_expr + ' as name'))
                 .from('information_schema.tables')
                 .where('table_type', 'BASE TABLE')
-              if (opts.schemas !== '*') {
-                sql = sql
-                  .whereIn('table_schema', opts.schemas.split(','))
-              }
+            if (opts.schemas !== '*') {
+                sql = sql.whereIn('table_schema', opts.schemas.split(','))
+            }
 
-              sql
-                .catch(cb)
-                .then(function(tbls) {
-                    tbls = pluck(tbls, 'name');
+            sql.catch(cb).then(function(tbls) {
+                tbls = pluck(tbls, 'name')
                 if (!matchAll) {
                     tbls = tbls.filter(function(tbl) {
-                        return contains(tableNames, tbl);
-                    });
+                        return contains(tableNames, tbl)
+                    })
                 }
-                cb(null, tbls);
-            });
+                cb(null, tbls)
+            })
         },
 
         getTableComment: function(tableName, cb) {
-          // return cb(null, '')
-            var sql = `
+            // return cb(null, '')
+            const sql = `
                 select CAST(ep.value AS sql_variant) AS comment
                 FROM sys.tables as tbl
                 INNER JOIN sys.extended_properties AS ep
@@ -65,19 +59,17 @@ module.exports = function mssqlBackend(opts, callback) {
                 .raw(sql)
                 .catch(cb)
                 .then(function(comments) {
-                    comments = pluck(comments, 'comment');
-                    cb(null, comments[0]);
-                });
+                    comments = pluck(comments, 'comment')
+                    cb(null, comments[0])
+                })
         },
 
         getTableStructure: function(tableName, cb) {
-          var ref_tableNameExpr =
-              `rs.name + '.' + rt.name`
-              // `case when rs.name = 'dbo' then rt.name else
-              //                 rs.name + '.' + rt.name end`
-              
-          var sql = 
-            `with ref_cols as (
+            var ref_tableNameExpr = `rs.name + '.' + rt.name`
+            // `case when rs.name = 'dbo' then rt.name else
+            //                 rs.name + '.' + rt.name end`
+
+            var sql = `with ref_cols as (
                 select ${ref_tableNameExpr} as ref_table_name,
                       fkc.parent_column_id as fk_column_id,
                       rc.name as ref_column_name,
@@ -150,14 +142,14 @@ module.exports = function mssqlBackend(opts, callback) {
             on col.column_id = pk_cols.column_id
             order by col.column_id  
                   `
-          mssql
-            .raw(sql)
+            mssql
+                .raw(sql)
                 .catch(cb)
                 .then(function(info) {
                     // info.fieldName = table.fieldName
                     // info.dbTableName = table.dbTableName
-                    cb(null, (info || []).map(camelCaseKeys));
-                });
+                    cb(null, (info || []).map(camelCaseKeys))
+                })
         },
 
         hasDuplicateValues: function(tableName, column, cb) {
@@ -169,18 +161,18 @@ module.exports = function mssqlBackend(opts, callback) {
                 .limit(1)
                 .catch(cb)
                 .then(function(info) {
-                    cb(null, (info || []).length > 0);
-                });
+                    cb(null, (info || []).length > 0)
+                })
         },
 
         close: function(cb) {
-            mssql.destroy(cb);
+            mssql.destroy(cb)
         }
-    };
-};
+    }
+}
 
 function camelCaseKeys(obj) {
     return mapKeys(obj, function(val, key) {
-        return camelCase(key);
-    });
+        return camelCase(key)
+    })
 }

@@ -1,47 +1,49 @@
 const pluralize = require('pluralize')
 
 module.exports = model => {
-    const typX = (type, isNullable) => `${type}${isNullable ? '' : '!'}`
+  const typX = (type, isNullable) => `${type}${isNullable ? '' : '!'}`
 
-    const { type, field, pkName, fields } = model
+  const { type, field, pkName, fields } = model
 
-    const typeDescription = model.description ? `  "${model.description}"
-  ` : ''
+  const typeDescription = model.description
+    ? `  "${model.description}"
+  `
+    : ''
 
-    let fields1 = []
-    Object.keys(fields)
-      .map(f => fields[f])
-      .forEach(f => {
-        if (f.description) {
-          fields1.push(`"${f.description}"`)
-        }
-        fields1.push(`${f.name}: ${typX(f.type, f.isNullable)}`)
-      })
-    model.references.forEach(f => {
+  let fields1 = []
+  Object.keys(fields)
+    .map(f => fields[f])
+    .forEach(f => {
       if (f.description) {
         fields1.push(`"${f.description}"`)
       }
-      fields1.push(`${f.field}: ${f.model.type}`)
+      fields1.push(`${f.name}: ${typX(f.type, f.isNullable)}`)
     })
-    model.listReferences.forEach(f => {
-      if (f.description) {
-        fields1.push(`"${f.description}"`)
-      }
-      fields1.push(`${f.field}: [${f.model.type}]`)
-    })
-    fields1 = fields1.join('\n    ')
+  model.references.forEach(f => {
+    if (f.description) {
+      fields1.push(`"${f.description}"`)
+    }
+    fields1.push(`${f.field}: ${f.model.type}`)
+  })
+  model.listReferences.forEach(f => {
+    if (f.description) {
+      fields1.push(`"${f.description}"`)
+    }
+    fields1.push(`${f.field}: [${f.model.type}]`)
+  })
+  fields1 = fields1.join('\n    ')
 
-    const fields2 = Object.keys(fields)
-        .map(f => fields[f])
-        .map(f => `${f.name}: ${typX(f.type, f.isNullable)}`)
-        .join(', ')
+  const fields2 = Object.keys(fields)
+    .map(f => fields[f])
+    .map(f => `${f.name}: ${typX(f.type, f.isNullable)}`)
+    .join(', ')
 
-    const fields3 = Object.keys(fields)
-        .map(f => fields[f])
-        .map(f => `${f.name}: ${f.type}`)
-        .join(', ')
+  const fields3 = Object.keys(fields)
+    .map(f => fields[f])
+    .map(f => `${f.name}: ${f.type}`)
+    .join(', ')
 
-    const typeDefJS = `export default
+  const typeDefJS = `export default
 \`${typeDescription}  type ${type} {
     ${fields1}
   }
@@ -58,5 +60,5 @@ module.exports = model => {
   }
 \``
 
-    return typeDefJS
+  return typeDefJS
 }

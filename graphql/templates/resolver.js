@@ -1,45 +1,43 @@
 const pluralize = require('pluralize')
 
 module.exports = (model, models) => {
-    const { type, typePlural, field, fieldPlural, tableName, pkName, fields } = model
+  const { type, typePlural, field, fieldPlural, tableName, pkName, fields } = model
 
-    const imports = {}
-    const getRefs = []
-    
-    model.references.forEach(ref => {
-        const { field, refField } = ref
-        const type = ref.model.type
-        const findOneType = 'findOne' + type
+  const imports = {}
+  const getRefs = []
 
-        imports[findOneType] = `import {${findOneType}} from './${type}'`
+  model.references.forEach(ref => {
+    const { field, refField } = ref
+    const type = ref.model.type
+    const findOneType = 'findOne' + type
 
-        getRefs.push(`refField = selections.find(f => f.kind === 'Field' && f.name.value === '${field}')
+    imports[findOneType] = `import {${findOneType}} from './${type}'`
+
+    getRefs.push(`refField = selections.find(f => f.kind === 'Field' && f.name.value === '${field}')
     if (refField) {
-      row.${field} = ${findOneType}({ ${
-            ref.model.pkName
-        }: row['${refField}'] }, refField.selectionSet.selections)
+      row.${field} = ${findOneType}({ ${ref.model
+      .pkName}: row['${refField}'] }, refField.selectionSet.selections)
     }
 `)
-    })
+  })
 
-    model.listReferences.forEach(ref => {
-        const { type } = ref.model
-        const findTypeList = 'find' + pluralize(type)
+  model.listReferences.forEach(ref => {
+    const { type } = ref.model
+    const findTypeList = 'find' + pluralize(type)
 
-        imports[findTypeList] = `import {${findTypeList}} from './${type}'`
+    imports[findTypeList] = `import {${findTypeList}} from './${type}'`
 
-        getRefs.push(
-            `refField = selections.find(f => f.kind === 'Field' && f.name.value === '${ref.field}')
+    getRefs.push(
+      `refField = selections.find(f => f.kind === 'Field' && f.name.value === '${ref.field}')
   if (refField) {
-      row.${ref.field} = ${findTypeList}({ ${ref.refField}: row['${
-                ref.model.pkName
-            }'] }, refField.selectionSet.selections)
+      row.${ref.field} = ${findTypeList}({ ${ref.refField}: row['${ref.model
+        .pkName}'] }, refField.selectionSet.selections)
     }
 `
-        )
-    })
+    )
+  })
 
-    const resolverDefJS = `
+  const resolverDefJS = `
 import _pick from 'lodash/pick'
 import { findOne, find, create, findOneAndUpdate, findOneAndDelete } from '../operations'
 
@@ -52,9 +50,9 @@ const bridge = {
   tableName: '${tableName}',
   fieldColumnMap: {
     ${Object.keys(fields)
-        .map(f => fields[f])
-        .map(f => `'${f.name}': '${f.originalName}'`)
-        .join(',\n    ')}
+      .map(f => fields[f])
+      .map(f => `'${f.name}': '${f.originalName}'`)
+      .join(',\n    ')}
   },
   pkField: '${pkName}'
 }
@@ -95,5 +93,5 @@ export default {
 }
 
 `
-    return resolverDefJS
+  return resolverDefJS
 }
