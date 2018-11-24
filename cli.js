@@ -133,7 +133,6 @@ async function buildObjectRepresentation(data, opts) {
 
   steps.aliasMultipleReferences(models, opts)
 
-console.log(data.models.SalesCurrency.references)
   adapter.close();
 
   }
@@ -154,7 +153,7 @@ function epilogue(opts) {
   console.log('npm install');
   console.log('npm start');
   console.log();
-  console.log('Then point your browser at http://localhost:3000');
+  console.log('Then point your browser at http://localhost:4000/graphql');
 }
 
 function bail(err) {

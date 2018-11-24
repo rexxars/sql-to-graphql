@@ -34,9 +34,8 @@ function findRelationships(adapter, model, models, callback) {
             //     return done(null, model);
             // }
             var reverseRefs = ref.model.listReferences;
-            var refName = pluralize(model.name);
-            // var refName = camelCase(pluralize(model.name));
-            var description = pluralize(model.name) + ' belonging to this ' + ref.model.name;
+            var refName = camelCase(pluralize(model.name));
+            var description = refName + ' belonging to this ' + ref.model.name;
             // if (find(reverseRefs, { field: refName }) || ref.model.fields[refName]) {
             //     // @TODO find a better name algo resolve mechanism
             //     // `thread_id` should naturally be `threads`, while `old_thread_id` should be.. something else

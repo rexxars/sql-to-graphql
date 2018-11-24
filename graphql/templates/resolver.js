@@ -41,7 +41,7 @@ module.exports = (model, models) => {
 
     const resolverDefJS = `
 import _pick from 'lodash/pick'
-import { findOne, find, create, findOneAndUpdate, findOneAndDelete } from '../../knex/operations'
+import { findOne, find, create, findOneAndUpdate, findOneAndDelete } from '../operations'
 
 // Repeat for relations
 ${Object.values(imports).join('\n')}
