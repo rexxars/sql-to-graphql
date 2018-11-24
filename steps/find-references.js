@@ -74,17 +74,19 @@ function findReferencesForModelBackend(model, models) {
             var fieldName = camelCase(refModel.name);
 
             // If we collide with a different field name, add a "Ref"-suffix
-            if (fields.indexOf(fieldName) !== -1) {
-                fieldName += 'Ref';
-            }
+            // if (fields.indexOf(fieldName) !== -1) {
+            //     fieldName += 'Ref';
+            // }
 
             // Ensure table has primary key
             // Does not handle multi-column keys
             if (find(model.fields, { isPrimaryKey: true })) {
+              let description = refModel.name + ' referenced by this ' + model.name;
               references.push({
                   model: refModel,
                   field: fieldName,
-                  refField: col.name
+                  refField: col.name,
+                  description: description
               });
             }
 

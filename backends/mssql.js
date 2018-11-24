@@ -125,6 +125,7 @@ module.exports = function mssqlBackend(opts, callback) {
                     left join sys.extended_properties AS ep
                     on c.object_id = ep.major_id
                     and c.column_id = ep.minor_id
+                    and ep.class_desc = 'OBJECT_OR_COLUMN'
                     join sys.types as st
                     on st.user_type_id = c.system_type_id
                     where c.object_id = object_id('${tableName}')

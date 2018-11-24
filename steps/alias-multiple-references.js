@@ -22,17 +22,17 @@ function aliasReferences(references) {
       modelCnts[ref.field] = 1
     }
   })
-  console.log('modelCnts', modelCnts)
 
   references.forEach(ref => {
     const field = ref.field
     if (modelCnts[field] > 1 || ref.model.fields[field]) {
       const colAlias = capitalize(ref.refField).replace(/id$/i, '')
       ref.field = field + colAlias
-      description += '..? (' + colAlias + ')';
+      if (ref.description) {
+        ref.description += ' (' + colAlias + ')'
+      }
     }
   })
 }
-
 
 module.exports = aliasMultipleReferences;

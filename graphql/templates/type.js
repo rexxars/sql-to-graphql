@@ -4,17 +4,31 @@ module.exports = model => {
     const typX = (type, isNullable) => `${type}${isNullable ? '' : '!'}`
 
     const { type, field, pkName, fields } = model
-    const pkType = pkName && fields[pkName].type
 
-    // if (model.type === 'User') {
-    //     console.log('model', model)
-    // }
+    const typeDescription = model.description ? `  "${model.description}"
+  ` : ''
 
-    let fields1 = Object.keys(fields)
-        .map(f => fields[f])
-        .map(f => `${f.name}: ${typX(f.type, f.isNullable)}`)
-    model.references.forEach(f => fields1.push(`${f.field}: ${f.model.type}`))
-    model.listReferences.forEach(f => fields1.push(`${f.field}: [${f.model.type}]`))
+    let fields1 = []
+    Object.keys(fields)
+      .map(f => fields[f])
+      .forEach(f => {
+        if (f.description) {
+          fields1.push(`"${f.description}"`)
+        }
+        fields1.push(`${f.name}: ${typX(f.type, f.isNullable)}`)
+      })
+    model.references.forEach(f => {
+      if (f.description) {
+        fields1.push(`"${f.description}"`)
+      }
+      fields1.push(`${f.field}: ${f.model.type}`)
+    })
+    model.listReferences.forEach(f => {
+      if (f.description) {
+        fields1.push(`"${f.description}"`)
+      }
+      fields1.push(`${f.field}: [${f.model.type}]`)
+    })
     fields1 = fields1.join('\n    ')
 
     const fields2 = Object.keys(fields)
@@ -28,7 +42,7 @@ module.exports = model => {
         .join(', ')
 
     const typeDefJS = `export default
-\`  type ${type} {
+\`${typeDescription}  type ${type} {
     ${fields1}
   }
 

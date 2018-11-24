@@ -27,7 +27,7 @@ function findRelationships(adapter, model, models, callback) {
       var referenceColumn = getUnaliasedField(ref.refField, model);
           var reverseRefs = ref.model.listReferences;
           var refName = camelCase(pluralize(model.name));
-          var description = refName + ' belonging to this ' + ref.model.name;
+          var description = 'List of ' + refName + ' belonging to this ' + ref.model.name;
 
           reverseRefs.push({
               model: model,
