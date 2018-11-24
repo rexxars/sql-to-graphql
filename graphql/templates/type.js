@@ -1,64 +1,90 @@
 const pluralize = require('pluralize')
 
 module.exports = model => {
-  const typX = (type, isNullable) => `${type}${isNullable ? '' : '!'}`
+    const { type, field } = model
 
-  const { type, field, pkName, fields } = model
-
-  const typeDescription = model.description
-    ? `  "${model.description}"
+    const typeDescription = model.description
+        ? `  "${model.description}"
   `
-    : ''
+        : ''
 
-  let fields1 = []
-  Object.keys(fields)
-    .map(f => fields[f])
-    .forEach(f => {
-      if (f.description) {
-        fields1.push(`"${f.description}"`)
-      }
-      fields1.push(`${f.name}: ${typX(f.type, f.isNullable)}`)
-    })
-  model.references.forEach(f => {
-    if (f.description) {
-      fields1.push(`"${f.description}"`)
-    }
-    fields1.push(`${f.field}: ${f.model.type}`)
-  })
-  model.listReferences.forEach(f => {
-    if (f.description) {
-      fields1.push(`"${f.description}"`)
-    }
-    fields1.push(`${f.field}: [${f.model.type}]`)
-  })
-  fields1 = fields1.join('\n    ')
+    const typeFieldsSDL = getTypeFieldsSDL(model)
+    const fieldsSDLBang = getFieldsSDLBang(model)
+    const fieldsSDLNoBang = getFieldsSDLBang(model)
 
-  const fields2 = Object.keys(fields)
-    .map(f => fields[f])
-    .map(f => `${f.name}: ${typX(f.type, f.isNullable)}`)
-    .join(', ')
-
-  const fields3 = Object.keys(fields)
-    .map(f => fields[f])
-    .map(f => `${f.name}: ${f.type}`)
-    .join(', ')
-
-  const typeDefJS = `export default
+    const typeDefJS = `export default
 \`${typeDescription}  type ${type} {
-    ${fields1}
+    ${typeFieldsSDL}
   }
 
   type Query {
-    ${field}(${fields3}): ${type}
+    ${field}(${fieldsSDLNoBang}): ${type}
     ${pluralize(field)}: [${type}]
   }
 
   type Mutation {
-    add${type}(${fields2}): ${type}
-    edit${type}(${fields3}): ${type}
-    delete${type}(${fields3}): ConfirmDeleteKey
+    add${type}(${fieldsSDLBang}): ${type}
+    edit${type}(${fieldsSDLNoBang}): ${type}
+    delete${type}(${fieldsSDLNoBang}): ConfirmDeleteKey
   }
 \``
 
-  return typeDefJS
+    return typeDefJS
+}
+
+function typX(type, isNullable) {
+    return `${type}${isNullable ? '' : '!'}`
+}
+
+function getTypeFieldsSDL(model) {
+    let typeFields = []
+
+    Object.keys(model.fields)
+        .map(f => model.fields[f])
+        .forEach(f => {
+            if (f.description) {
+                typeFields.push(`"${f.description}"`)
+            }
+            typeFields.push(`${f.name}: ${typX(f.type, f.isNullable)}`)
+        })
+
+    model.references.forEach(ref => {
+        if (ref.description) {
+            typeFields.push(`"${ref.description}"`)
+        }
+        let arglist = getFieldsSDLExJoinField(ref.model, ref.model.pkName)
+        typeFields.push(`${ref.field}(${arglist}): ${ref.model.type}`)
+    })
+
+    model.listReferences.forEach(ref => {
+        if (ref.description) {
+            typeFields.push(`"${ref.description}"`)
+        }
+        let arglist = getFieldsSDLExJoinField(ref.model, ref.refField)
+        typeFields.push(`${ref.field}(${arglist}): [${ref.model.type}]`)
+    })
+
+    return typeFields.join('\n    ')
+}
+
+function getFieldsSDLBang(model) {
+    return Object.keys(model.fields)
+        .map(f => model.fields[f])
+        .map(f => `${f.name}: ${typX(f.type, f.isNullable)}`)
+        .join(', ')
+}
+
+function getFieldsSDLNoBang(model) {
+    return Object.keys(model.fields)
+        .map(f => model.fields[f])
+        .map(f => `${f.name}: ${f.type}`)
+        .join(', ')
+}
+
+function getFieldsSDLExJoinField(model, joinField) {
+    return Object.keys(model.fields)
+        .map(f => model.fields[f])
+        .filter(f => f.name !== joinField)
+        .map(f => `${f.name}: ${f.type}`)
+        .join(', ')
 }
