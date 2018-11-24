@@ -5,6 +5,7 @@ const find = require('lodash/find')
 const snakeCase = require('lodash/snakeCase')
 const camelCase = require('lodash/camelCase')
 const capitalize = require('lodash/capitalize')
+const pluralize = require('pluralize')
 
 function findReferences(models, opts) {
     for (let type in models) {
@@ -16,6 +17,13 @@ function findReferences(models, opts) {
                 : []
         models[type].listReferences = []
     }
+    for (let type in models) {
+        findListReferences(models[type])
+    }
+    for (let type in models) {
+        aliasReferences(models[type].references)
+        aliasReferences(models[type].listReferences)
+    }
 
     return models
 }
@@ -23,7 +31,6 @@ function findReferences(models, opts) {
 function findReferencesForModelByID(model, models) {
     // Find columns that end with "Id"
     const refs = filter(model.fields, isIdColumn)
-    let fields = Object.keys(model.fields)
 
     // Filter the columns that have a corresponding model
     return refs.reduce(function(references, col) {
@@ -39,15 +46,17 @@ function findReferencesForModelByID(model, models) {
                 fieldName = col.name.replace(/Id$/, '')
 
                 // If we collide with a different field name, add a "Ref"-suffix
-                if (fields.indexOf(fieldName) !== -1) {
-                    fieldName += 'Ref'
-                }
+                // if (fields.indexOf(fieldName) !== -1) {
+                //     fieldName += 'Ref'
+                // }
 
                 if (find(model.fields, { isPrimaryKey: true })) {
+                    let description = capitalize(fieldName) + ' referenced by this ' + model.name
                     references.push({
                         model: models[name],
                         field: fieldName,
-                        refField: col.name
+                        refField: col.name,
+                        description: description
                     })
                 }
 
@@ -100,6 +109,46 @@ function findReferencesForModelBackend(model, models) {
 
 function isForeignKeyColumn(col) {
     return !!col.refTableName
+}
+
+function findListReferences(model) {
+    model.references.forEach(function(ref) {
+        const refName = camelCase(pluralize(model.name))
+        const description = 'List of ' + refName + ' belonging to this ' + ref.model.name
+
+        ref.model.listReferences.push({
+            model: model,
+            description: description,
+            field: refName,
+            refField: ref.refField,
+            isList: true
+        })
+    })
+}
+
+function aliasReferences(references) {
+    // If a model refers more than once to another model,
+    // we need to provide an alias field for additional
+    // references. Append the ref field.
+    let modelCnts = {}
+    references.forEach(ref => {
+        if (modelCnts[ref.field]) {
+            modelCnts[ref.field]++
+        } else {
+            modelCnts[ref.field] = 1
+        }
+    })
+
+    references.forEach(ref => {
+        const field = ref.field
+        if (modelCnts[field] > 1 || ref.model.fields[field]) {
+            const colAlias = capitalize(ref.refField).replace(/id$/i, '')
+            ref.field = field + colAlias
+            if (ref.description) {
+                ref.description += ' (' + colAlias + ')'
+            }
+        }
+    })
 }
 
 module.exports = findReferences
