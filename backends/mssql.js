@@ -152,19 +152,6 @@ module.exports = function mssqlBackend(opts, callback) {
                 })
         },
 
-        hasDuplicateValues: function(tableName, column, cb) {
-            mssql
-                .count(column)
-                .from(tableName)
-                .groupBy(column)
-                .having(mssql.raw('count(' + column + ') > 1'))
-                .limit(1)
-                .catch(cb)
-                .then(function(info) {
-                    cb(null, (info || []).length > 0)
-                })
-        },
-
         close: function(cb) {
             mssql.destroy(cb)
         }
