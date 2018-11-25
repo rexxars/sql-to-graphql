@@ -10,7 +10,7 @@ module.exports = model => {
 
     const typeFieldsSDL = getTypeFieldsSDL(model)
     const fieldsSDLBang = getFieldsSDLBang(model)
-    const fieldsSDLNoBang = getFieldsSDLBang(model)
+    const fieldsSDLNoBang = getFieldsSDLNoBang(model)
 
     const typeDefJS = `export default
 \`${typeDescription}  type ${type} {
