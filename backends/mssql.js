@@ -111,6 +111,7 @@ module.exports = function mssqlBackend(opts, callback) {
             col as (select c.name as column_name,
                             column_id,
                             c.is_nullable,
+                            c.is_identity,
                             st.name as data_type,
                             CAST(ep.value AS sql_variant) as column_comment
                     from sys.columns as c
@@ -127,6 +128,7 @@ module.exports = function mssqlBackend(opts, callback) {
                   col.column_name,
                   col.column_id as ordinal_position,
                   col.is_nullable,
+                  col.is_identity as is_auto_increment,
                   col.data_type,
                   column_comment,
                   ref_table_name,

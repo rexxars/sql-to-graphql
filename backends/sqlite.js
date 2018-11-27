@@ -54,6 +54,7 @@ module.exports = function sqliteBackend(opts, callback) {
                         return {
                             columnName: col.name,
                             isNullable: col.notnull !== 1,
+                            isAutoIncrement: col.pk,
                             columnKey: col.pk === 1 ? 'PRI' : null,
                             dataType: sanitizedType
                         }

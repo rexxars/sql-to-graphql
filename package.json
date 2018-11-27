@@ -40,23 +40,23 @@
     "inquirer": "^6.2.0",
     "knex": "^0.15.2",
     "lodash": "^4.0.0",
-    "mssql": "5.0.0-alpha.1",
+    "mssql": "4.1.0",
+    "tedious": "^2.6.4",
     "mysql": "^2.8.0",
     "pg": "^7.6.1",
     "pluralize": "^7.0.0",
-    "sqlite3": "^4.0.3",
-    "tedious": "^3.0.1",
-    "yargs": "^12.0.2"
+    "sqlite3": "^4.0.4",
+    "yargs": "^12.0.5"
   },
   "devDependencies": {
-    "eslint": "^5.8.0",
+    "eslint": "^5.9.0",
     "eslint-config-airbnb": "^17.1.0",
-    "eslint-config-prettier": "^3.1.0",
+    "eslint-config-prettier": "^3.3.0",
     "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-jsx-a11y": "^6.1.2",
     "eslint-plugin-prettier": "^3.0.0",
     "eslint-plugin-react": "^7.11.1",
-    "prettier": "^1.14.3"
+    "prettier": "^1.15.2"
   },
   "eslintConfig": {
     "extends": "vaffel",
