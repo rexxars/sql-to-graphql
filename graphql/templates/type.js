@@ -1,7 +1,8 @@
 const pluralize = require('pluralize')
 
 module.exports = model => {
-    const { type, field } = model
+    const { type, field, pkName, fields } = model
+    const pkType = pkName && fields[pkName].type
 
     const typeDescription = model.description
         ? `  "${model.description}"
@@ -10,6 +11,7 @@ module.exports = model => {
 
     const typeFieldsSDL = getTypeFieldsSDL(model)
     const fieldsSDLBang = getFieldsSDLBang(model)
+    const fieldsSDLBangPK = getFieldsSDLBangPK(model)
     const fieldsSDLNoBang = getFieldsSDLNoBang(model)
 
     const typeDefJS = `export default
@@ -24,8 +26,8 @@ module.exports = model => {
 
   type Mutation {
     add${type}(${fieldsSDLBang}): ${type}
-    edit${type}(${fieldsSDLNoBang}): ${type}
-    delete${type}(${fieldsSDLNoBang}): ConfirmDeleteKey
+    edit${type}(${fieldsSDLBangPK}): ${type}
+    delete${type}(${pkName}: ${pkType}!): ConfirmDeleteKey
   }
 \``
 
@@ -71,6 +73,13 @@ function getFieldsSDLBang(model) {
     return Object.keys(model.fields)
         .map(f => model.fields[f])
         .map(f => `${f.name}: ${typX(f.type, f.isNullable)}`)
+        .join(', ')
+}
+
+function getFieldsSDLBangPK(model) {
+    return Object.keys(model.fields)
+        .map(f => model.fields[f])
+        .map(f => f.name + ':' + f.type + (f.name === f.pkName ? '!' : ''))
         .join(', ')
 }
 
