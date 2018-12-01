@@ -33,9 +33,7 @@ function tableToObject(table, opts) {
     idFieldNum: 0 //_pick(fields, f => f.isPrimaryKey)
   }
   model.type = model.name
-  model.typePlural = pluralize(model.type)
   model.field = model.type.charAt(0).toLowerCase() + model.type.slice(1)
-  model.fieldPlural = pluralize(model.field)
 
   // Find primary key
   // If none, assume column named 'id' is primary key

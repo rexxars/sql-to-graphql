@@ -1,7 +1,7 @@
 const pluralize = require('pluralize')
 
 module.exports = (model, models) => {
-    const { type, typePlural, field, fieldPlural, tableName, pkName, fields } = model
+    const { type, field, tableName, pkName, fields } = model
 
     const imports = {}
     const getRefs = []
@@ -80,7 +80,7 @@ export const findOne${type} = (args, selections) =>
   findOne(bridge, args)  ${getRefs.length === 0 ? '/*' : ''}
 .then(row => resolveRefs(row, selections))${getRefs.length === 0 ? '*/' : ''}
 
-export const find${typePlural} = (args, selections) =>
+export const find${pluralize(type)} = (args, selections) =>
   find(bridge, args)  ${getRefs.length === 0 ? '/*' : ''}
   .then(rows => {
     rows.forEach(
@@ -94,8 +94,8 @@ export default {
   Query: {
     ${field}: (parent, args, context, info) =>
     findOne${type}(args, info.fieldNodes[0].selectionSet.selections),
-    ${fieldPlural}: (parent, args, context, info) =>
-    find${typePlural}(args, info.fieldNodes[0].selectionSet.selections)
+    ${pluralize(field)}: (parent, args, context, info) =>
+    find${pluralize(type)}(args, info.fieldNodes[0].selectionSet.selections)
   },
   Mutation: {
     add${type}: (parent, args, context, info) => create(bridge, args),
