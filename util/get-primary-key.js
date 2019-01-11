@@ -1,11 +1,11 @@
-'use strict';
+'use strict'
 
 module.exports = function getPrimaryKey(model) {
-    for (var key in model.fields) {
-        if (model.fields[key].isPrimaryKey) {
-            return model.fields[key];
-        }
+  for (let key in model.fields) {
+    if (model.fields[key].isPrimaryKey) {
+      return model.fields[key]
     }
+  }
 
-    return false;
-};
+  return false
+}

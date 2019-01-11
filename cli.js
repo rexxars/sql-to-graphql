@@ -1,179 +1,168 @@
-#!/usr/bin/env node
-'use strict';
+'use strict'
 
-var path = require('path');
-var async = require('async');
-var opts = require('./cli/args');
-var prompts = require('./cli/prompts');
-var merge = require('lodash/object/merge');
-var partial = require('lodash/function/partial');
-var backends = require('./backends');
-var mapValues = require('lodash/object/mapValues');
-var steps = {
-    getTables: require('./steps/table-list'),
+let opts = require('./cli/args')
+
+const { promisify } = require('util')
+const path = require('path')
+const prompts = require('./cli/prompts')
+const backends = require('./backends')
+const steps = {
+    getTables: promisify(require('./steps/table-list')),
     tableToObject: require('./steps/table-to-object'),
+    tableStructure: promisify(require('./steps/table-structure')),
+    tableComments: promisify(require('./steps/table-comment')),
     findReferences: require('./steps/find-references'),
-    findOneToManyReferences: require('./steps/find-one-to-many-rels'),
-    generateTypes: require('./steps/generate-types'),
-    outputData: require('./steps/output-data'),
-
-    collect: {
-        tableStructure: require('./steps/table-structure'),
-        tableComments: require('./steps/table-comment')
-    }
-};
-
-// Force recast to throw away whitespace information
-opts.reuseWhitespace = false;
-
-if (opts.backend === 'sqlite' && !opts.database) {
-    opts.database = 'main';
+    outputData: promisify(require('./steps/output-data'))
 }
 
-if (opts.backend === 'sqlite' && !opts.dbFilename) {
-    return bail(new Error('You need to specify a database filename (--db-filename) when using the \'sqlite\' backend'));
-}
+getOpts(opts)
+    .then(opts => checkOpts(opts))
+    .then(opts => instantiate(opts))
+    .then(opts => epilogue(opts))
 
-if (!opts.interactive && !opts.database) {
-    return bail(new Error('You need to specify a database (--database)'));
-}
+async function getOpts(opts) {
+    opts = Object.assign({}, opts)
 
-if (!opts.interactive && !opts.outputDir) {
-    return bail(new Error('You need to provide an output directory (--output-dir=<path>) to generate an application'));
-}
+    if (opts.interactive) {
+        let options
 
-if (opts.interactive) {
-    prompts.dbCredentials(opts, function(options) {
-        opts = merge({}, opts, options);
+        options = await prompts.backend(opts)
+        opts = { ...opts, ...options }
+        options = await prompts.dbCredentials(opts)
+        opts = { ...opts, ...options }
 
-        initOutputPath();
-    });
-} else {
-    initOutputPath();
-}
-
-function initOutputPath() {
-    if (opts.outputDir) {
-        return initStyleOpts();
-    }
-
-    prompts.outputPath(function(outPath) {
-        opts.outputDir = outPath;
-
-        initStyleOpts();
-    });
-}
-
-function initStyleOpts() {
-    if (!opts.interactive) {
-        return instantiate();
-    }
-
-    prompts.styleOptions(opts, function(options) {
-        opts = options;
-
-        instantiate();
-    });
-}
-
-var adapter;
-function instantiate() {
-    // Do we support the given backend?
-    var backend = backends(opts.backend);
-    if (!backend) {
-        return bail(new Error('Database backend "' + opts.backend + '" not supported'));
-    }
-
-    // Instantiate the adapter for the given backend
-    adapter = backend(opts, function(err) {
-        bailOnError(err);
-
-        setTimeout(getTables, 1000);
-    });
-}
-
-function getTables() {
-    // Collect a list of available tables
-    steps.getTables(adapter, opts, function(err, tableNames) {
-        bailOnError(err);
-
-        // If we're in interactive mode, prompt the user to select from the list of available tables
-        if (opts.interactive) {
-            return prompts.tableSelection(tableNames, onTablesSelected);
+        if (!opts.outputDir) {
+            options = await prompts.outputPath()
+            opts = { ...opts, ...options }
         }
 
-        // Use the found tables (or a filtered set if --table is used)
-        return onTablesSelected(tableNames);
-    });
+        options = await prompts.styleOptions(opts)
+        opts = { ...opts, ...options }
+    }
+
+    return opts
 }
 
-// When tables have been selected, fetch data for those tables
-function onTablesSelected(tables) {
-    // Assign partialed functions to make the code slightly more readable
-    steps.collect = mapValues(steps.collect, function(method) {
-        return partial(method, adapter, { tables: tables });
-    });
+function checkOpts(opts) {
+    opts = Object.assign({}, opts)
 
-    // Collect the data in parallel
-    async.parallel(steps.collect, onTableDataCollected);
+    if (opts.backend === 'sqlite' && !opts.database) {
+        opts.database = 'main'
+    }
+
+    if (opts.backend === 'sqlite' && !opts.dbFilename) {
+        return bail(
+            new Error(
+                "You need to specify a database filename (--db-filename) when using the 'sqlite' backend"
+            )
+        )
+    }
+
+    if (!opts.interactive && !opts.database) {
+        return bail(new Error('You need to specify a database (--database)'))
+    }
+
+    if (!opts.interactive && !opts.outputDir) {
+        return bail(
+            new Error(
+                'You need to provide an output directory (--output-dir=<path>) to generate an application'
+            )
+        )
+    }
+
+    return opts
+}
+
+var adapter
+async function instantiate(opts) {
+    const sleep = promisify(setTimeout)
+
+    try {
+        // Do we support the given backend?
+        let backend = backends(opts.backend)
+        if (!backend) {
+            return bail(new Error('Database backend "' + opts.backend + '" not supported'))
+        }
+
+        // Instantiate the adapter for the given backend
+        adapter = backend(opts, function(err) {
+            bailOnError(err)
+        })
+
+        await sleep(1000)
+
+        let tableNames = await steps.getTables(adapter, opts)
+        // If we're in interactive mode, prompt the user to select from the list of available tables
+        if (opts.interactive) {
+            tableNames = (await prompts.tableSelection(tableNames)).tables
+        }
+
+        // When tables have been selected, fetch data for those tables
+        let data = {}
+        data.tableStructure = await steps.tableStructure(adapter, { tables: tableNames })
+        data.tableComments = await steps.tableComments(adapter, { tables: tableNames })
+
+        await buildObjectRepresentation(data, opts)
+
+        await steps.outputData(data, opts)
+
+        return opts
+    } catch (err) {
+        bailOnError(err)
+    }
 }
 
 // When table data has been collected, build an object representation of them
-function onTableDataCollected(err, data) {
-    bailOnError(err);
-
-    var tableName, models = {}, model;
+async function buildObjectRepresentation(data, opts) {
+    let tableName,
+        models = {},
+        model
     for (tableName in data.tableStructure) {
-        model = steps.tableToObject({
-            name: tableName,
-            columns: data.tableStructure[tableName],
-            comment: data.tableComments[tableName]
-        }, opts);
+        model = steps.tableToObject(
+            {
+                name: tableName,
+                columns: data.tableStructure[tableName],
+                comment: data.tableComments[tableName]
+            },
+            opts
+        )
 
-        models[model.name] = model;
+        models[model.name] = model
     }
 
-    data.models = steps.findReferences(models);
-
     // Note: This mutates the models - sorry. PRs are welcome.
-    steps.findOneToManyReferences(adapter, data.models, function(refErr) {
-        if (refErr) {
-            throw refErr;
-        }
+    data.models = steps.findReferences(models, opts)
 
-        data.types = steps.generateTypes(data, opts);
-
-        adapter.close();
-        steps.outputData(data, opts, onDataOutput);
-    });
+    adapter.close()
 }
 
 // When the data has been written to stdout/files
-function onDataOutput() {
+function epilogue(opts) {
     if (!opts.outputDir) {
-        return;
+        return
     }
 
     if (opts.interactive) {
-        console.log('\n\n\n');
+        console.log('\n\n\n')
     }
 
-    var dir = path.resolve(opts.outputDir);
-    console.log('Demo app generated in ' + dir + '. To run:');
-    console.log('cd ' + dir);
-    console.log('npm install');
-    console.log('npm start');
-    console.log();
-    console.log('Then point your browser at http://localhost:3000');
+    const dir = path.resolve(opts.outputDir)
+    console.log('Demo app generated in ' + dir + '. To run:')
+    console.log('cd ' + dir)
+    console.log('npm install')
+    console.log('npm start')
+    console.log()
+    console.log('Then point your browser at http://localhost:4000/graphql')
 }
 
 function bail(err) {
-    console.error(err.message ? err.message : err.toString());
-    process.exit(1);
+    console.error(err.message ? err.message : err.toString())
+    process.exit(1)
 }
 
 function bailOnError(err) {
     if (err) {
-        return bail(err);
+        throw err
+        return bail(err)
     }
 }

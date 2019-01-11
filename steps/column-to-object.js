@@ -1,37 +1,45 @@
-'use strict';
+'use strict'
 
-var merge = require('lodash/object/merge');
-var indexBy = require('lodash/collection/indexBy');
-var camelCase = require('lodash/string/camelCase');
-var capitalize = require('lodash/string/capitalize');
-var generics = ['type'], undef;
+const merge = require('lodash/merge')
+const indexBy = require('lodash/keyBy')
+const camelCase = require('lodash/camelCase')
+const generics = ['type']
+let undef
+let unsupported_types = []
+
+const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1)
 
 function columnToObject(col, opts) {
-    var column = merge({
-        name: getColName(col, opts),
-        originalName: col.columnName,
-        description: col.columnComment || undef,
-        isNullable: col.isNullable === 'YES',
-        isPrimaryKey: col.columnKey === 'PRI'
-    }, getType(col));
+    const column = merge(
+        {
+            name: getColName(col, opts),
+            originalName: col.columnName,
+            description: col.columnComment || undef,
+            isNullable: col.isNullable === 'YES',
+            isPrimaryKey: col.columnKey === 'PRI',
+            refTableName: col.refTableName,
+            refColumnName: col.refColumnName
+        },
+        getType(col)
+    )
 
     if (column.isPrimaryKey && !opts.unaliasedPrimaryKeys) {
-        column.name = 'id';
+        column.name = 'id'
     }
 
-    return column;
+    return column
 }
 
 function getColName(col) {
     if (generics.indexOf(col.columnName.toLowerCase()) > -1) {
-        return camelCase(col.tableName) + capitalize(camelCase(col.columnName));
+        return camelCase(col.tableName) + capitalize(camelCase(col.columnName))
     }
 
-    return camelCase(col.columnName);
+    return camelCase(col.columnName)
 }
 
 function getEnumValueMap(col) {
-    var values = col.columnType
+    const values = col.columnType
         .replace(/^enum\((.*)\)/, '$1')
         .replace(/^\{|\}$/g, '')
         .split(',')
@@ -40,14 +48,14 @@ function getEnumValueMap(col) {
             return {
                 value: val,
                 description: undef
-            };
-        });
+            }
+        })
 
-    return indexBy(values, 'value');
+    return indexBy(values, 'value')
 }
 
 function unquote(str) {
-    return str.replace(/^'+|'+$/g, '');
+    return str.replace(/^'+|'+$/g, '')
 }
 
 function getType(col) {
@@ -84,6 +92,7 @@ function getType(col) {
         case 'set':
         case 'char':
         case 'text':
+        case 'string':
         case 'uuid':
         case 'varchar':
         case 'nvarchar':
@@ -94,7 +103,7 @@ function getType(col) {
         // pg
         case 'character varying':
         case 'jsonb':
-            return { type: 'string' };
+            return { type: 'String' }
 
         // Integers
         case 'int':
@@ -105,18 +114,18 @@ function getType(col) {
         case 'smallint':
         case 'mediumint':
         case 'timestamp':
-            return { type: 'integer' };
+            return { type: 'Int' }
 
         // Floats
         case 'real':
         case 'float':
         case 'double':
         case 'double precision':
-            return { type: 'float' };
+            return { type: 'Float' }
 
         // Booleans
         case 'boolean':
-            return { type: 'boolean' };
+            return { type: 'Boolean' }
 
         // Enum special case
         case 'enum':
@@ -124,13 +133,18 @@ function getType(col) {
         // As well as postgres enums
         case 'USER-DEFINED':
             return {
-                type: 'enum',
+                type: 'Enum',
                 values: getEnumValueMap(col)
-            };
+            }
         default:
-            console.log(col);
-            throw new Error('Type "' + col.dataType + '" not recognized');
+            if (!unsupported_types.includes(col.datatype)) {
+                unsupported_types.push(col.datatype)
+                console.log('Unsupoported type: ' + col.dataType)
+            }
+            //TODO Add missing mssql types
+            return { type: 'String' }
+            throw new Error('Type "' + col.dataType + '" not recognized')
     }
 }
 
-module.exports = columnToObject;
+module.exports = columnToObject
