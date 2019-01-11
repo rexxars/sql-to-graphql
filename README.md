@@ -2,6 +2,10 @@
 
 Generate GraphQL schemas and server based on SQL table structure.
 
+## :warning: Unmaintained
+
+If you want to help maintain or develop this, let me know!
+
 ## What?
 
 [GraphQL](https://facebook.github.io/graphql/) is pretty awesome, but getting started can be difficult - especially if you are unfamiliar with the concepts it introduces.
