@@ -46,7 +46,7 @@
     "pg": "^4.4.1",
     "pluralize": "^1.1.2",
     "recast": "^0.10.26",
-    "sqlite3": "^3.1.0",
+    "sqlite3": "^4.0.2",
     "yargs": "^3.15.0"
   },
   "devDependencies": {
