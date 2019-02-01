@@ -3,7 +3,7 @@
 var b = require('ast-types').builders;
 
 module.exports = function buildFieldWrapperFunc(name, fields, opts) {
-    if (opts.es6) {
+    if (opts && opts.es6) {
         return b.arrowFunctionExpression([], fields);
     }
 

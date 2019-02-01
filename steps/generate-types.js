@@ -15,6 +15,7 @@ var typeMap = {
     id: 'GraphQLID',
     string: 'GraphQLString',
     integer: 'GraphQLInt',
+    list: 'GraphQLList',
     float: 'GraphQLFloat',
     boolean: 'GraphQLBoolean'
 };
